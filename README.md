@@ -83,27 +83,7 @@ Terms used throughout the interface and the documentation.
 
 ## Download and run
 
-### Option 1: download a ready-made build
-
-No Python needed. This is the easiest route.
-
-1. Go to the [Releases page](https://github.com/SDlel/bmrcl-train-tracker/releases).
-2. Download the archive for your system:
-   - `BMRCL-Train-Tracker-Windows.zip`
-   - `BMRCL-Train-Tracker-macOS.zip`
-   - `BMRCL-Train-Tracker-Linux.zip`
-3. Unzip it anywhere.
-4. Run the `BMRCL-Train-Tracker` executable inside the folder.
-
-The archive is around 110 MB unzipped, because it bundles the Python runtime
-and the Qt libraries.
-
-Two notes on first launch. On Windows, SmartScreen may warn that the publisher
-is unknown, since the build is not code-signed; choose **More info** then **Run
-anyway**. On macOS, right-click the app and choose **Open** rather than
-double-clicking, for the same reason.
-
-### Option 2: run from source
+### Option 1: run from source
 
 Requires Python 3.12 or newer.
 
@@ -123,7 +103,7 @@ bmrcl-train-tracker
 
 `python -m bmrcl` also works.
 
-### Option 3: build your own executable
+### Option 2: build your own executable
 
 ```bash
 pip install -e ".[package]"
