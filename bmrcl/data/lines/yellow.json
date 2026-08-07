@@ -1,0 +1,30 @@
+{
+  "id": "yellow",
+  "name": "Yellow Line",
+  "short_name": "YLW",
+  "colour": "#eab308",
+  "colour_dim": "#7d6209",
+  "row": 2,
+  "order": 3,
+  "terminals": {
+    "up": "rv_road",
+    "down": "bommasandra"
+  },
+  "stations": [
+    { "id": "rv_road", "name": "RV Road", "code": "RVR", "terminus": true, "short_turn": true, "interchange": true, "interchange_with": ["Green Line"] },
+    { "id": "ragigudda", "name": "Ragigudda", "code": "RGG" },
+    { "id": "jayadeva_hospital", "name": "Jayadeva Hospital", "code": "JDH", "interchange": true, "short_turn": true, "interchange_with": ["Pink Line (planned)"] },
+    { "id": "btm_layout", "name": "BTM Layout", "code": "BTM" },
+    { "id": "central_silk_board", "name": "Central Silk Board", "code": "CSB", "interchange": true, "short_turn": true, "interchange_with": ["Blue Line (planned)"] },
+    { "id": "bommanahalli", "name": "Bommanahalli", "code": "BMH" },
+    { "id": "hongasandra", "name": "Hongasandra", "code": "HGS" },
+    { "id": "kudlu_gate", "name": "Kudlu Gate", "code": "KDG" },
+    { "id": "singasandra", "name": "Singasandra", "code": "SGS" },
+    { "id": "hosa_road", "name": "Hosa Road", "code": "HSR" },
+    { "id": "beratena_agrahara", "name": "Beratena Agrahara", "code": "BTA" },
+    { "id": "electronic_city", "name": "Electronic City", "code": "ELC", "short_turn": true },
+    { "id": "huskur_road", "name": "Huskur Road", "code": "HKR" },
+    { "id": "hebbagodi", "name": "Hebbagodi", "code": "HBG" },
+    { "id": "bommasandra", "name": "Bommasandra", "code": "BMS", "terminus": true, "short_turn": true, "depot": true }
+  ]
+}

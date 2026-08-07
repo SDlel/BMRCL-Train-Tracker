@@ -1,0 +1,717 @@
+{
+  "version": 1,
+  "meta": {
+    "source": "Transcribed from BMRCL published frequency tables (screenshots).",
+    "disclaimer": "Simulation timetable. Values are interpreted as headway windows and are not an authoritative passenger schedule.",
+    "notes": [
+      "Each window spawns a departure from 'origin' every 'headway' minutes between 'start' and 'end'.",
+      "Short-turn services are separate services and may overlap the full-route service.",
+      "'departures' lists explicit single departures (used for the Purple Line short loops)."
+    ]
+  },
+  "day_types": {
+    "monday": { "label": "Monday", "weekdays": [0] },
+    "tue_fri": { "label": "Tuesday-Friday", "weekdays": [1, 2, 3, 4] },
+    "saturday": { "label": "Saturday", "weekdays": [5] },
+    "sunday": { "label": "Sunday", "weekdays": [6] }
+  },
+  "lines": {
+    "purple": {
+      "services": {
+        "monday": [
+          {
+            "id": "PPL-WFD-FULL",
+            "label": "Whitefield to Challaghatta",
+            "type": "full",
+            "origin": "whitefield_kadugodi",
+            "destination": "challaghatta",
+            "windows": [
+              { "start": "04:15", "end": "04:35", "headway": 20 },
+              { "start": "04:35", "end": "05:00", "headway": 13 },
+              { "start": "05:00", "end": "10:57", "headway": 10 },
+              { "start": "10:57", "end": "15:21", "headway": 8 },
+              { "start": "15:21", "end": "22:01", "headway": 10 },
+              { "start": "22:01", "end": "22:45", "headway": 15 }
+            ]
+          },
+          {
+            "id": "PPL-CHG-FULL",
+            "label": "Challaghatta to Whitefield",
+            "type": "full",
+            "origin": "challaghatta",
+            "destination": "whitefield_kadugodi",
+            "windows": [
+              { "start": "04:15", "end": "04:35", "headway": 20 },
+              { "start": "04:35", "end": "05:15", "headway": 15 },
+              { "start": "05:15", "end": "06:54", "headway": 11 },
+              { "start": "06:54", "end": "12:20", "headway": 10 },
+              { "start": "12:20", "end": "16:45", "headway": 8 },
+              { "start": "16:45", "end": "23:05", "headway": 10 }
+            ]
+          },
+          {
+            "id": "PPL-GDP-SHORT",
+            "label": "Garudachar Palya to Challaghatta",
+            "type": "short",
+            "origin": "garudachar_palya",
+            "destination": "challaghatta",
+            "windows": [
+              { "start": "06:53", "end": "10:55", "headway": 5 },
+              { "start": "16:10", "end": "20:10", "headway": 5 }
+            ]
+          },
+          {
+            "id": "PPL-MYR-SHORT",
+            "label": "Mysore Road to Whitefield",
+            "type": "short",
+            "origin": "mysore_road",
+            "destination": "whitefield_kadugodi",
+            "windows": [
+              { "start": "07:22", "end": "10:20", "headway": 5 },
+              { "start": "16:53", "end": "21:02", "headway": 5 }
+            ]
+          },
+          {
+            "id": "PPL-KGM-BYP-AM",
+            "label": "Kempegowda to Baiyappanahalli",
+            "type": "short",
+            "origin": "kempegowda_majestic",
+            "destination": "baiyappanahalli",
+            "departures": ["07:55", "08:05", "08:48", "11:53"]
+          },
+          {
+            "id": "PPL-KGM-PTA-AM",
+            "label": "Kempegowda to Pattandur Agrahara",
+            "type": "short",
+            "origin": "kempegowda_majestic",
+            "destination": "pattandur_agrahara",
+            "departures": ["08:58", "09:07", "09:18", "09:28", "09:39", "09:49", "10:00", "10:10", "10:21"]
+          },
+          {
+            "id": "PPL-KGM-WFD-AM",
+            "label": "Kempegowda to Whitefield",
+            "type": "short",
+            "origin": "kempegowda_majestic",
+            "destination": "whitefield_kadugodi",
+            "departures": ["10:39", "10:50", "11:00", "11:11", "11:22", "11:43"]
+          },
+          {
+            "id": "PPL-BYP-MYR-PM",
+            "label": "Baiyappanahalli to Mysore Road",
+            "type": "short",
+            "origin": "baiyappanahalli",
+            "destination": "mysore_road",
+            "departures": ["16:14"]
+          },
+          {
+            "id": "PPL-BYP-KGM-PM",
+            "label": "Baiyappanahalli to Kempegowda",
+            "type": "short",
+            "origin": "baiyappanahalli",
+            "destination": "kempegowda_majestic",
+            "departures": ["17:36", "17:46", "18:27", "18:37"]
+          },
+          {
+            "id": "PPL-KGM-BYP-PM",
+            "label": "Kempegowda to Baiyappanahalli",
+            "type": "short",
+            "origin": "kempegowda_majestic",
+            "destination": "baiyappanahalli",
+            "departures": ["18:03", "18:13"]
+          },
+          {
+            "id": "PPL-KGM-MGR-PM",
+            "label": "Kempegowda to Mahatma Gandhi Road",
+            "type": "short",
+            "origin": "kempegowda_majestic",
+            "destination": "mahatma_gandhi_road",
+            "departures": ["18:54", "19:04"]
+          },
+          {
+            "id": "PPL-MGR-CHG-PM",
+            "label": "Mahatma Gandhi Road to Challaghatta",
+            "type": "short",
+            "origin": "mahatma_gandhi_road",
+            "destination": "challaghatta",
+            "departures": ["19:04", "19:14"]
+          }
+        ],
+        "tue_fri": [
+          {
+            "id": "PPL-WFD-FULL",
+            "label": "Whitefield to Challaghatta",
+            "type": "full",
+            "origin": "whitefield_kadugodi",
+            "destination": "challaghatta",
+            "windows": [
+              { "start": "05:00", "end": "05:20", "headway": 20 },
+              { "start": "05:20", "end": "10:57", "headway": 10 },
+              { "start": "10:57", "end": "15:21", "headway": 8 },
+              { "start": "15:21", "end": "22:01", "headway": 10 },
+              { "start": "22:01", "end": "22:45", "headway": 15 }
+            ]
+          },
+          {
+            "id": "PPL-CHG-FULL",
+            "label": "Challaghatta to Whitefield",
+            "type": "full",
+            "origin": "challaghatta",
+            "destination": "whitefield_kadugodi",
+            "windows": [
+              { "start": "05:00", "end": "05:20", "headway": 20 },
+              { "start": "05:20", "end": "06:00", "headway": 15 },
+              { "start": "06:00", "end": "06:54", "headway": 11 },
+              { "start": "06:54", "end": "12:20", "headway": 10 },
+              { "start": "12:20", "end": "16:02", "headway": 8 },
+              { "start": "16:02", "end": "23:05", "headway": 10 }
+            ]
+          },
+          {
+            "id": "PPL-GDP-SHORT",
+            "label": "Garudachar Palya to Challaghatta",
+            "type": "short",
+            "origin": "garudachar_palya",
+            "destination": "challaghatta",
+            "windows": [
+              { "start": "06:53", "end": "10:55", "headway": 5 },
+              { "start": "16:10", "end": "20:10", "headway": 5 }
+            ]
+          },
+          {
+            "id": "PPL-MYR-SHORT",
+            "label": "Mysore Road to Whitefield",
+            "type": "short",
+            "origin": "mysore_road",
+            "destination": "whitefield_kadugodi",
+            "windows": [
+              { "start": "07:22", "end": "10:20", "headway": 5 },
+              { "start": "16:53", "end": "21:02", "headway": 5 }
+            ]
+          },
+          {
+            "id": "PPL-KGM-BYP-AM",
+            "label": "Kempegowda to Baiyappanahalli",
+            "type": "short",
+            "origin": "kempegowda_majestic",
+            "destination": "baiyappanahalli",
+            "departures": ["07:55", "08:05", "08:48", "11:53"]
+          },
+          {
+            "id": "PPL-KGM-PTA-AM",
+            "label": "Kempegowda to Pattandur Agrahara",
+            "type": "short",
+            "origin": "kempegowda_majestic",
+            "destination": "pattandur_agrahara",
+            "departures": ["08:58", "09:07", "09:18", "09:28", "09:39", "09:49", "10:00", "10:10", "10:21"]
+          },
+          {
+            "id": "PPL-KGM-WFD-AM",
+            "label": "Kempegowda to Whitefield",
+            "type": "short",
+            "origin": "kempegowda_majestic",
+            "destination": "whitefield_kadugodi",
+            "departures": ["10:39", "10:50", "11:00", "11:11", "11:22", "11:43"]
+          },
+          {
+            "id": "PPL-BYP-MYR-PM",
+            "label": "Baiyappanahalli to Mysore Road",
+            "type": "short",
+            "origin": "baiyappanahalli",
+            "destination": "mysore_road",
+            "departures": ["16:14"]
+          },
+          {
+            "id": "PPL-BYP-KGM-PM",
+            "label": "Baiyappanahalli to Kempegowda",
+            "type": "short",
+            "origin": "baiyappanahalli",
+            "destination": "kempegowda_majestic",
+            "departures": ["17:36", "17:46", "18:27", "18:37"]
+          },
+          {
+            "id": "PPL-KGM-BYP-PM",
+            "label": "Kempegowda to Baiyappanahalli",
+            "type": "short",
+            "origin": "kempegowda_majestic",
+            "destination": "baiyappanahalli",
+            "departures": ["18:03", "18:13"]
+          },
+          {
+            "id": "PPL-KGM-MGR-PM",
+            "label": "Kempegowda to Mahatma Gandhi Road",
+            "type": "short",
+            "origin": "kempegowda_majestic",
+            "destination": "mahatma_gandhi_road",
+            "departures": ["18:54", "19:04"]
+          },
+          {
+            "id": "PPL-MGR-CHG-PM",
+            "label": "Mahatma Gandhi Road to Challaghatta",
+            "type": "short",
+            "origin": "mahatma_gandhi_road",
+            "destination": "challaghatta",
+            "departures": ["19:04", "19:14"]
+          }
+        ],
+        "saturday": [
+          {
+            "id": "PPL-WFD-FULL",
+            "label": "Whitefield to Challaghatta",
+            "type": "full",
+            "origin": "whitefield_kadugodi",
+            "destination": "challaghatta",
+            "windows": [
+              { "start": "05:00", "end": "05:20", "headway": 20 },
+              { "start": "05:20", "end": "10:57", "headway": 10 },
+              { "start": "10:57", "end": "15:21", "headway": 8 },
+              { "start": "15:21", "end": "22:01", "headway": 10 },
+              { "start": "22:01", "end": "22:45", "headway": 15 }
+            ]
+          },
+          {
+            "id": "PPL-CHG-FULL",
+            "label": "Challaghatta to Whitefield",
+            "type": "full",
+            "origin": "challaghatta",
+            "destination": "whitefield_kadugodi",
+            "windows": [
+              { "start": "05:00", "end": "05:20", "headway": 20 },
+              { "start": "05:20", "end": "06:00", "headway": 15 },
+              { "start": "06:00", "end": "06:54", "headway": 11 },
+              { "start": "06:54", "end": "12:20", "headway": 10 },
+              { "start": "12:20", "end": "16:45", "headway": 8 },
+              { "start": "16:45", "end": "23:05", "headway": 10 }
+            ]
+          },
+          {
+            "id": "PPL-GDP-SHORT",
+            "label": "Garudachar Palya to Challaghatta",
+            "type": "short",
+            "origin": "garudachar_palya",
+            "destination": "challaghatta",
+            "windows": [
+              { "start": "06:53", "end": "10:55", "headway": 6 },
+              { "start": "16:10", "end": "20:10", "headway": 6 }
+            ]
+          },
+          {
+            "id": "PPL-MYR-SHORT",
+            "label": "Mysore Road to Whitefield",
+            "type": "short",
+            "origin": "mysore_road",
+            "destination": "whitefield_kadugodi",
+            "windows": [
+              { "start": "07:22", "end": "10:20", "headway": 6 },
+              { "start": "16:53", "end": "21:02", "headway": 6 }
+            ]
+          }
+        ],
+        "sunday": [
+          {
+            "id": "PPL-WFD-FULL",
+            "label": "Whitefield to Challaghatta",
+            "type": "full",
+            "origin": "whitefield_kadugodi",
+            "destination": "challaghatta",
+            "windows": [
+              { "start": "07:00", "end": "10:33", "headway": 10 },
+              { "start": "10:33", "end": "20:01", "headway": 8 },
+              { "start": "20:01", "end": "22:31", "headway": 10 },
+              { "start": "22:31", "end": "22:45", "headway": 14 }
+            ]
+          },
+          {
+            "id": "PPL-CHG-FULL",
+            "label": "Challaghatta to Whitefield",
+            "type": "full",
+            "origin": "challaghatta",
+            "destination": "whitefield_kadugodi",
+            "windows": [
+              { "start": "07:00", "end": "07:50", "headway": 15 },
+              { "start": "07:50", "end": "12:00", "headway": 10 },
+              { "start": "12:00", "end": "21:28", "headway": 8 },
+              { "start": "21:28", "end": "23:05", "headway": 10 }
+            ]
+          }
+        ]
+      }
+    },
+    "green": {
+      "services": {
+        "monday": [
+          {
+            "id": "GRN-MDV-FULL",
+            "label": "Madavara to Silk Institute",
+            "type": "full",
+            "origin": "madavara",
+            "destination": "silk_institute",
+            "windows": [
+              { "start": "04:15", "end": "04:40", "headway": 25 },
+              { "start": "05:00", "end": "06:15", "headway": 15 },
+              { "start": "06:15", "end": "10:25", "headway": 10 },
+              { "start": "10:25", "end": "10:39", "headway": 7 },
+              { "start": "10:39", "end": "15:51", "headway": 8 },
+              { "start": "15:51", "end": "19:44", "headway": 10 },
+              { "start": "19:44", "end": "20:24", "headway": 8 },
+              { "start": "20:24", "end": "22:04", "headway": 10 },
+              { "start": "22:04", "end": "22:40", "headway": 10 },
+              { "start": "22:40", "end": "22:57", "headway": 15 }
+            ]
+          },
+          {
+            "id": "GRN-SLK-FULL",
+            "label": "Silk Institute to Madavara",
+            "type": "full",
+            "origin": "silk_institute",
+            "destination": "madavara",
+            "windows": [
+              { "start": "04:15", "end": "05:00", "headway": 20 },
+              { "start": "05:00", "end": "07:00", "headway": 15 },
+              { "start": "07:00", "end": "11:09", "headway": 10 },
+              { "start": "11:09", "end": "16:48", "headway": 8 },
+              { "start": "16:48", "end": "20:29", "headway": 10 },
+              { "start": "20:29", "end": "21:30", "headway": 8 },
+              { "start": "21:30", "end": "22:40", "headway": 10 },
+              { "start": "22:40", "end": "23:05", "headway": 12.5 }
+            ]
+          },
+          {
+            "id": "GRN-NGS-SHORT",
+            "label": "Nagasandra / Peenya Industry to Silk Institute",
+            "type": "short",
+            "origin": "peenya_industry",
+            "destination": "silk_institute",
+            "windows": [
+              { "start": "06:37", "end": "10:22", "headway": 5 },
+              { "start": "16:36", "end": "19:41", "headway": 5 }
+            ]
+          },
+          {
+            "id": "GRN-YLH-SHORT",
+            "label": "Yelachenahalli to Madavara",
+            "type": "short",
+            "origin": "yelachenahalli",
+            "destination": "madavara",
+            "windows": [
+              { "start": "07:20", "end": "10:50", "headway": 5 },
+              { "start": "16:58", "end": "20:22", "headway": 5 }
+            ]
+          }
+        ],
+        "tue_fri": [
+          {
+            "id": "GRN-MDV-FULL",
+            "label": "Madavara to Silk Institute",
+            "type": "full",
+            "origin": "madavara",
+            "destination": "silk_institute",
+            "windows": [
+              { "start": "05:00", "end": "06:15", "headway": 15 },
+              { "start": "06:15", "end": "10:25", "headway": 11 },
+              { "start": "10:25", "end": "10:39", "headway": 7 },
+              { "start": "10:39", "end": "15:51", "headway": 8 },
+              { "start": "15:51", "end": "19:44", "headway": 10 },
+              { "start": "19:44", "end": "20:24", "headway": 8 },
+              { "start": "20:24", "end": "22:04", "headway": 10 },
+              { "start": "22:04", "end": "22:40", "headway": 10 },
+              { "start": "22:40", "end": "22:57", "headway": 15 }
+            ]
+          },
+          {
+            "id": "GRN-SLK-FULL",
+            "label": "Silk Institute to Madavara",
+            "type": "full",
+            "origin": "silk_institute",
+            "destination": "madavara",
+            "windows": [
+              { "start": "05:00", "end": "07:00", "headway": 15 },
+              { "start": "07:00", "end": "11:09", "headway": 10 },
+              { "start": "11:09", "end": "16:48", "headway": 8 },
+              { "start": "16:48", "end": "20:29", "headway": 10 },
+              { "start": "20:29", "end": "21:30", "headway": 8 },
+              { "start": "21:30", "end": "22:40", "headway": 10 },
+              { "start": "22:40", "end": "23:05", "headway": 12.5 }
+            ]
+          },
+          {
+            "id": "GRN-NGS-SHORT",
+            "label": "Nagasandra / Peenya Industry to Silk Institute",
+            "type": "short",
+            "origin": "peenya_industry",
+            "destination": "silk_institute",
+            "windows": [
+              { "start": "06:37", "end": "10:22", "headway": 5 },
+              { "start": "16:36", "end": "19:41", "headway": 5 }
+            ]
+          },
+          {
+            "id": "GRN-YLH-SHORT",
+            "label": "Yelachenahalli to Madavara",
+            "type": "short",
+            "origin": "yelachenahalli",
+            "destination": "madavara",
+            "windows": [
+              { "start": "07:20", "end": "10:50", "headway": 5 },
+              { "start": "16:58", "end": "20:22", "headway": 5 }
+            ]
+          }
+        ],
+        "saturday": [
+          {
+            "id": "GRN-MDV-FULL",
+            "label": "Madavara to Silk Institute",
+            "type": "full",
+            "origin": "madavara",
+            "destination": "silk_institute",
+            "windows": [
+              { "start": "05:00", "end": "06:15", "headway": 15 },
+              { "start": "06:15", "end": "10:39", "headway": 11 },
+              { "start": "10:39", "end": "16:01", "headway": 8 },
+              { "start": "16:01", "end": "16:23", "headway": 5.5 },
+              { "start": "16:23", "end": "19:52", "headway": 11 },
+              { "start": "19:52", "end": "20:24", "headway": 8 },
+              { "start": "20:24", "end": "22:04", "headway": 10 },
+              { "start": "22:04", "end": "23:00", "headway": 15 }
+            ]
+          },
+          {
+            "id": "GRN-SLK-FULL",
+            "label": "Silk Institute to Madavara",
+            "type": "full",
+            "origin": "silk_institute",
+            "destination": "madavara",
+            "windows": [
+              { "start": "05:00", "end": "07:00", "headway": 15 },
+              { "start": "07:00", "end": "11:53", "headway": 11 },
+              { "start": "11:53", "end": "16:48", "headway": 8 },
+              { "start": "16:48", "end": "20:57", "headway": 11 },
+              { "start": "20:57", "end": "21:30", "headway": 8 },
+              { "start": "21:30", "end": "22:40", "headway": 10 },
+              { "start": "22:40", "end": "23:05", "headway": 12.5 }
+            ]
+          },
+          {
+            "id": "GRN-NGS-SHORT",
+            "label": "Nagasandra / Peenya Industry to Silk Institute",
+            "type": "short",
+            "origin": "peenya_industry",
+            "destination": "silk_institute",
+            "windows": [
+              { "start": "06:38", "end": "10:40", "headway": 5.5 },
+              { "start": "16:13", "end": "19:47", "headway": 5.5 }
+            ]
+          },
+          {
+            "id": "GRN-YLH-SHORT",
+            "label": "Yelachenahalli to Madavara",
+            "type": "short",
+            "origin": "yelachenahalli",
+            "destination": "madavara",
+            "windows": [
+              { "start": "07:21", "end": "11:23", "headway": 5.5 },
+              { "start": "16:58", "end": "20:36", "headway": 5.5 }
+            ]
+          }
+        ],
+        "sunday": [
+          {
+            "id": "GRN-MDV-FULL",
+            "label": "Madavara to Silk Institute",
+            "type": "full",
+            "origin": "madavara",
+            "destination": "silk_institute",
+            "windows": [
+              { "start": "07:00", "end": "10:47", "headway": 10 },
+              { "start": "10:47", "end": "20:15", "headway": 8 },
+              { "start": "20:15", "end": "22:05", "headway": 10 },
+              { "start": "22:05", "end": "22:29", "headway": 12 },
+              { "start": "22:29", "end": "23:00", "headway": 15 }
+            ]
+          },
+          {
+            "id": "GRN-SLK-FULL",
+            "label": "Silk Institute to Madavara",
+            "type": "full",
+            "origin": "silk_institute",
+            "destination": "madavara",
+            "windows": [
+              { "start": "07:00", "end": "07:58", "headway": 15 },
+              { "start": "07:58", "end": "12:08", "headway": 10 },
+              { "start": "12:08", "end": "21:44", "headway": 8 },
+              { "start": "21:44", "end": "22:44", "headway": 10 },
+              { "start": "22:44", "end": "23:05", "headway": 12 }
+            ]
+          }
+        ]
+      }
+    },
+    "yellow": {
+      "services": {
+        "monday": [
+          {
+            "id": "YLW-RVR-FULL",
+            "label": "RV Road to Bommasandra",
+            "type": "full",
+            "origin": "rv_road",
+            "destination": "bommasandra",
+            "windows": [
+              { "start": "05:05", "end": "05:35", "headway": 30 },
+              { "start": "05:35", "end": "06:00", "headway": 25 },
+              { "start": "06:00", "end": "06:40", "headway": 20 },
+              { "start": "06:40", "end": "06:56", "headway": 16 },
+              { "start": "06:56", "end": "07:07", "headway": 11 },
+              { "start": "07:07", "end": "08:27", "headway": 10 },
+              { "start": "08:27", "end": "09:23", "headway": 8 },
+              { "start": "09:23", "end": "10:33", "headway": 7 },
+              { "start": "10:33", "end": "11:05", "headway": 8 },
+              { "start": "11:05", "end": "16:45", "headway": 10 },
+              { "start": "16:45", "end": "18:58", "headway": 7 },
+              { "start": "18:58", "end": "20:34", "headway": 8 },
+              { "start": "20:34", "end": "21:34", "headway": 10 },
+              { "start": "21:34", "end": "21:45", "headway": 11 },
+              { "start": "21:45", "end": "22:20", "headway": 12 },
+              { "start": "22:20", "end": "22:40", "headway": 20 },
+              { "start": "22:40", "end": "23:55", "headway": 25 }
+            ]
+          },
+          {
+            "id": "YLW-BMS-FULL",
+            "label": "Bommasandra to RV Road",
+            "type": "full",
+            "origin": "bommasandra",
+            "destination": "rv_road",
+            "windows": [
+              { "start": "05:05", "end": "05:35", "headway": 30 },
+              { "start": "05:35", "end": "06:00", "headway": 20 },
+              { "start": "06:00", "end": "06:20", "headway": 20 },
+              { "start": "06:20", "end": "07:50", "headway": 10 },
+              { "start": "07:50", "end": "08:46", "headway": 8 },
+              { "start": "08:46", "end": "09:49", "headway": 7 },
+              { "start": "09:49", "end": "10:29", "headway": 8 },
+              { "start": "10:29", "end": "16:09", "headway": 10 },
+              { "start": "16:09", "end": "18:29", "headway": 7 },
+              { "start": "18:29", "end": "19:57", "headway": 8 },
+              { "start": "19:57", "end": "20:57", "headway": 10 },
+              { "start": "20:57", "end": "22:33", "headway": 12 },
+              { "start": "22:33", "end": "22:42", "headway": 9 }
+            ]
+          }
+        ],
+        "tue_fri": [
+          {
+            "id": "YLW-RVR-FULL",
+            "label": "RV Road to Bommasandra",
+            "type": "full",
+            "origin": "rv_road",
+            "destination": "bommasandra",
+            "windows": [
+              { "start": "06:00", "end": "06:40", "headway": 20 },
+              { "start": "06:40", "end": "06:56", "headway": 16 },
+              { "start": "06:56", "end": "07:07", "headway": 11 },
+              { "start": "07:07", "end": "08:27", "headway": 10 },
+              { "start": "08:27", "end": "09:23", "headway": 8 },
+              { "start": "09:23", "end": "10:33", "headway": 7 },
+              { "start": "10:33", "end": "11:05", "headway": 8 },
+              { "start": "11:05", "end": "16:45", "headway": 10 },
+              { "start": "16:45", "end": "18:58", "headway": 7 },
+              { "start": "18:58", "end": "20:34", "headway": 8 },
+              { "start": "20:34", "end": "21:34", "headway": 10 },
+              { "start": "21:34", "end": "21:45", "headway": 11 },
+              { "start": "21:45", "end": "22:20", "headway": 12 },
+              { "start": "22:20", "end": "22:40", "headway": 20 },
+              { "start": "22:40", "end": "23:55", "headway": 25 }
+            ]
+          },
+          {
+            "id": "YLW-BMS-FULL",
+            "label": "Bommasandra to RV Road",
+            "type": "full",
+            "origin": "bommasandra",
+            "destination": "rv_road",
+            "windows": [
+              { "start": "06:00", "end": "06:20", "headway": 20 },
+              { "start": "06:20", "end": "07:50", "headway": 10 },
+              { "start": "07:50", "end": "08:46", "headway": 8 },
+              { "start": "08:46", "end": "09:49", "headway": 7 },
+              { "start": "09:49", "end": "10:29", "headway": 8 },
+              { "start": "10:29", "end": "16:09", "headway": 10 },
+              { "start": "16:09", "end": "18:29", "headway": 7 },
+              { "start": "18:29", "end": "19:57", "headway": 8 },
+              { "start": "19:57", "end": "20:57", "headway": 10 },
+              { "start": "20:57", "end": "22:33", "headway": 12 },
+              { "start": "22:33", "end": "22:42", "headway": 9 }
+            ]
+          }
+        ],
+        "saturday": [
+          {
+            "id": "YLW-RVR-FULL",
+            "label": "RV Road to Bommasandra",
+            "type": "full",
+            "origin": "rv_road",
+            "destination": "bommasandra",
+            "windows": [
+              { "start": "06:00", "end": "06:25", "headway": 20 },
+              { "start": "06:25", "end": "07:05", "headway": 20 },
+              { "start": "07:05", "end": "07:20", "headway": 15 },
+              { "start": "07:20", "end": "07:31", "headway": 11 },
+              { "start": "07:31", "end": "20:31", "headway": 10 },
+              { "start": "20:31", "end": "22:07", "headway": 12 },
+              { "start": "22:07", "end": "22:25", "headway": 18 },
+              { "start": "22:25", "end": "23:05", "headway": 20 },
+              { "start": "23:05", "end": "23:55", "headway": 25 }
+            ]
+          },
+          {
+            "id": "YLW-BMS-FULL",
+            "label": "Bommasandra to RV Road",
+            "type": "full",
+            "origin": "bommasandra",
+            "destination": "rv_road",
+            "windows": [
+              { "start": "06:00", "end": "06:40", "headway": 20 },
+              { "start": "06:40", "end": "06:55", "headway": 15 },
+              { "start": "06:55", "end": "19:55", "headway": 10 },
+              { "start": "19:55", "end": "22:31", "headway": 12 },
+              { "start": "22:31", "end": "22:42", "headway": 11 }
+            ]
+          }
+        ],
+        "sunday": [
+          {
+            "id": "YLW-RVR-FULL",
+            "label": "RV Road to Bommasandra",
+            "type": "full",
+            "origin": "rv_road",
+            "destination": "bommasandra",
+            "windows": [
+              { "start": "07:00", "end": "08:48", "headway": 18 },
+              { "start": "08:48", "end": "09:58", "headway": 14 },
+              { "start": "09:58", "end": "10:46", "headway": 12 },
+              { "start": "10:46", "end": "20:56", "headway": 10 },
+              { "start": "20:56", "end": "22:20", "headway": 12 },
+              { "start": "22:20", "end": "22:50", "headway": 15 },
+              { "start": "22:50", "end": "23:30", "headway": 20 },
+              { "start": "23:30", "end": "23:55", "headway": 25 }
+            ]
+          },
+          {
+            "id": "YLW-BMS-FULL",
+            "label": "Bommasandra to RV Road",
+            "type": "full",
+            "origin": "bommasandra",
+            "destination": "rv_road",
+            "windows": [
+              { "start": "07:00", "end": "08:12", "headway": 18 },
+              { "start": "08:12", "end": "09:08", "headway": 14 },
+              { "start": "09:08", "end": "10:20", "headway": 12 },
+              { "start": "10:20", "end": "20:20", "headway": 10 },
+              { "start": "20:20", "end": "22:32", "headway": 12 },
+              { "start": "22:32", "end": "22:42", "headway": 10 }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

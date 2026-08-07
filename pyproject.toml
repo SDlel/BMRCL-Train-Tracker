@@ -1,0 +1,88 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bmrcl-train-tracker"
+version = "1.0.0"
+description = "BMRCL Train Tracker, a live Bengaluru Metro network dashboard"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+keywords = ["metro", "transit", "dashboard", "pyside6", "qt", "simulation", "bengaluru"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: End Users/Desktop",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+dependencies = ["PySide6>=6.6"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-qt>=4.4",
+    "ruff>=0.6",
+]
+package = ["pyinstaller>=6.0"]
+
+[project.scripts]
+bmrcl-train-tracker = "bmrcl.app:main"
+
+[project.urls]
+Homepage = "https://github.com/SDlel/bmrcl-train-tracker"
+Issues = "https://github.com/SDlel/bmrcl-train-tracker/issues"
+
+[tool.setuptools.packages.find]
+include = ["bmrcl*"]
+
+[tool.setuptools.package-data]
+"bmrcl.data" = ["*.json", "lines/*.json"]
+
+# ---------------------------------------------------------------------------
+# Tooling
+# ---------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+filterwarnings = ["error", "ignore::DeprecationWarning"]
+markers = ["slow: long-running checks that may be skipped locally"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["build", "dist"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # import sorting
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "C4",   # comprehensions
+    "SIM",  # simplify
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "E501",    # long lines are handled by the formatter
+    "SIM108",  # ternaries are not always clearer
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["SLF001"]      # tests may inspect private widget state
+"selftest.py" = ["E402"]    # Qt platform must be set before imports
+
+[tool.ruff.lint.isort]
+known-first-party = ["bmrcl"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
