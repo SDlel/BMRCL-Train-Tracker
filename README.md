@@ -81,21 +81,59 @@ Terms used throughout the interface and the documentation.
 
 ---
 
-## Quick start
+## Download and run
+
+### Option 1: download a ready-made build
+
+No Python needed. This is the easiest route.
+
+1. Go to the [Releases page](https://github.com/SDlel/bmrcl-train-tracker/releases).
+2. Download the archive for your system:
+   - `BMRCL-Train-Tracker-Windows.zip`
+   - `BMRCL-Train-Tracker-macOS.zip`
+   - `BMRCL-Train-Tracker-Linux.zip`
+3. Unzip it anywhere.
+4. Run the `BMRCL-Train-Tracker` executable inside the folder.
+
+The archive is around 110 MB unzipped, because it bundles the Python runtime
+and the Qt libraries.
+
+Two notes on first launch. On Windows, SmartScreen may warn that the publisher
+is unknown, since the build is not code-signed; choose **More info** then **Run
+anyway**. On macOS, right-click the app and choose **Open** rather than
+double-clicking, for the same reason.
+
+### Option 2: run from source
+
+Requires Python 3.12 or newer.
 
 ```bash
+git clone https://github.com/SDlel/bmrcl-train-tracker
+cd bmrcl-train-tracker
 python -m pip install -r requirements.txt
 python run.py
 ```
 
-Or as a module, or an installed script:
+Or install it as a command:
 
 ```bash
-python -m bmrcl
-pip install -e .  &&  bmrcl-train-tracker
+pip install -e .
+bmrcl-train-tracker
 ```
 
-Verify everything without opening a window:
+`python -m bmrcl` also works.
+
+### Option 3: build your own executable
+
+```bash
+pip install -e ".[package]"
+python package.py
+```
+
+The result lands in `dist/BMRCL-Train-Tracker/`. Builds are platform-specific,
+so a Windows build must be produced on Windows.
+
+### Verify the install
 
 ```bash
 pip install -e ".[dev]"
@@ -259,7 +297,7 @@ bmrcl-train-tracker/
 │   └── DATA_FORMAT.md        JSON schema reference
 ├── .github/workflows/ci.yml  lint and test on 3 OSes and 2 Python versions
 ├── selftest.py               end-to-end integration script
-├── build.py                  PyInstaller packaging
+├── package.py                PyInstaller packaging
 └── run.py                    launcher
 ```
 
@@ -429,14 +467,25 @@ Station flags: `terminus`, `interchange`, `short_turn`, `depot` and
 
 ---
 
-## Packaging
+## Packaging and releases
 
 ```bash
-python -m pip install pyinstaller
-python build.py           # output in dist/BMRCL-Train-Tracker/
+pip install -e ".[package]"
+python package.py        # output in dist/BMRCL-Train-Tracker/
 ```
 
-`build.py` bundles `timetable.json` and the `lines/` directory as data files.
+`package.py` bundles `timetable.json` and the `lines/` directory as data files,
+so the executable is self-contained.
+
+Tagged pushes build all three platforms and publish them automatically:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The `release` workflow then produces Windows, macOS and Linux archives and
+attaches them to a GitHub release.
 
 ---
 
