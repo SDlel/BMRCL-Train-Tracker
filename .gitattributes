@@ -1,0 +1,13 @@
+# Normalise line endings so Windows checkouts do not commit CRLF.
+* text=auto eol=lf
+
+# Files that must keep LF, since CI runners execute the embedded shell blocks.
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sh text eol=lf
+
+# Binary assets git must not touch.
+*.png binary
+*.jpg binary
+*.ico binary
+*.zip binary
