@@ -60,6 +60,23 @@ jobs:
         if: runner.os != 'Windows'
         run: cd dist/BMRCL-Train-Tracker && zip -r ../../${{ matrix.archive }} .
 
+      - name: Smoke test the executable
+        if: runner.os == 'Linux'
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          timeout 25s ./dist/BMRCL-Train-Tracker/BMRCL-Train-Tracker &
+          pid=$!
+          sleep 12
+          if kill -0 $pid 2>/dev/null; then
+            echo "Executable started and stayed alive."
+            kill $pid
+          else
+            wait $pid
+            echo "Executable exited early."
+            exit 1
+          fi
+
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.archive }}
