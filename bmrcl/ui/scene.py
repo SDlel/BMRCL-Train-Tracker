@@ -148,7 +148,7 @@ class NetworkScene(QGraphicsScene):
         badge = "SHORT TURN" if state.short_turn else "FULL ROUTE"
         eta = f"{int(state.seconds_to_next // 60):d}m {int(state.seconds_to_next % 60):02d}s"
         return (
-            f"<b>{state.run_id}</b> <span style='color:{theme.HEX['warn']}'>{badge}</span><br>"
+            f"<b>{state.run_label}</b> <span style='color:{theme.HEX['warn']}'>{badge}</span><br>"
             f"<span style='color:{theme.HEX['text_dim']}'>{state.service_label}</span><br>"
             f"Departed {format_hhmm(state.departure_time)} &middot; {phase}<br>"
             f"Towards <b>{dest}</b><br>"

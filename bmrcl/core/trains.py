@@ -35,6 +35,7 @@ class TrainState:
     """A live train, positioned in continuous station-index space."""
 
     run_id: str
+    run_label: str
     line_id: str
     service_id: str
     service_label: str
@@ -128,6 +129,7 @@ class RunResolver:
         if elapsed >= total:
             return TrainState(
                 run_id=departure.run_id,
+                run_label=departure.run_label,
                 line_id=self.line.id,
                 service_id=service.id,
                 service_label=service.label,
@@ -166,6 +168,7 @@ class RunResolver:
 
         return TrainState(
             run_id=departure.run_id,
+            run_label=departure.run_label,
             line_id=self.line.id,
             service_id=service.id,
             service_label=service.label,

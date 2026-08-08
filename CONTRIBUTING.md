@@ -18,7 +18,7 @@ Run all three before opening a pull request:
 ```bash
 ruff check .          # lint
 ruff format .         # format
-python -m pytest      # 170 tests, ~15 s
+python -m pytest      # 186 tests, ~25 s
 python selftest.py    # end-to-end integration pass
 ```
 
@@ -79,6 +79,7 @@ Add tests beside the behaviour they cover:
 | `test_theme.py` | AMOLED palette, typographic stability |
 | `test_metrics.py` | Text-aware sizing helpers |
 | `test_ui.py` | Header layout, tabs, docks, controls |
+| `test_train_panel.py` | Train detail panel and live tracking |
 | `test_performance.py` | Frame budget |
 
 Prefer a test that would have caught a real bug. Two examples already in the

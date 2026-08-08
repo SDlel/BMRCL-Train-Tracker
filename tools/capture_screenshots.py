@@ -135,6 +135,21 @@ def main() -> int:
     purple = simulation.network.line("purple")
     majestic = purple.station("kempegowda_majestic")
     window._select_station(majestic)
+
+    running = next(
+        (t for t in simulation.frame.trains["purple"] if 0.3 < t.progress < 0.8),
+        None,
+    )
+    if running is not None:
+        window._on_train_selected(running)
+        settle(app)
+        ok &= check("train panel populated", window.train_panel._run_id == running.run_id)
+        ok &= check(
+            "train panel shows a next stop",
+            window.train_panel.tile_next.value.text() != "--",
+            window.train_panel.tile_next.value.text(),
+        )
+
     purple_item = window.panel.scene.line_item("purple")
     window.view.set_zoom(1.35)
     window.view.centerOn(purple_item.mapToScene(purple_item.x_for_index(majestic.index), 0.0))

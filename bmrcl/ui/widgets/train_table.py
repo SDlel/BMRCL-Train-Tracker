@@ -52,7 +52,7 @@ class TrainTableModel(QAbstractTableModel):
 
         if role == Qt.DisplayRole:
             if column == 0:
-                return train.run_id
+                return train.run_label
             if column == 1:
                 return line.short_name
             if column == 2:
@@ -147,7 +147,7 @@ class TrainTable(QTableView):
         header.setSectionResizeMode(QHeaderView.Interactive)
         header.setStretchLastSection(True)
         header.setHighlightSections(False)
-        self.setColumnWidth(0, 128)
+        self.setColumnWidth(0, 168)
         self.setColumnWidth(1, 44)
         self.setColumnWidth(2, 52)
         self.setColumnWidth(3, 168)

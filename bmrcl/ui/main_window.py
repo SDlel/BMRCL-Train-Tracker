@@ -22,7 +22,7 @@ from . import theme
 from .network_panel import NetworkPanel
 from .scene import NetworkScene
 from .view import NetworkView
-from .widgets import HeaderBar, LinePanel, StationPanel, StatusBar, TrainTable
+from .widgets import HeaderBar, LinePanel, StationPanel, StatusBar, TrainPanel, TrainTable
 
 
 class MainWindow(QMainWindow):
@@ -172,6 +172,18 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, right)
         self.dock_station = right
 
+        self.train_panel = TrainPanel()
+        train_dock = QDockWidget("TRAIN DETAIL")
+        train_dock.setObjectName("TrainDetailDock")
+        train_dock.setWidget(self.train_panel)
+        train_dock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        train_dock.setMinimumWidth(330)
+        self.addDockWidget(Qt.RightDockWidgetArea, train_dock)
+        self.dock_train = train_dock
+        # Stack the two detail docks in one right-hand column so that clicking
+        # anything on the diagram always answers in the same place.
+        self.splitDockWidget(right, train_dock, Qt.Vertical)
+
         self.train_table = TrainTable(self.simulation.network)
         bottom = QDockWidget("LIVE TRAIN ROSTER")
         bottom.setObjectName("TrainRosterDock")
@@ -204,6 +216,7 @@ class MainWindow(QMainWindow):
         view_menu.addSeparator()
         view_menu.addAction(self.dock_lines.toggleViewAction())
         view_menu.addAction(self.dock_station.toggleViewAction())
+        view_menu.addAction(self.dock_train.toggleViewAction())
         view_menu.addAction(self.dock_trains.toggleViewAction())
 
         sim_menu = self.menuBar().addMenu("&Simulation")
@@ -296,6 +309,8 @@ class MainWindow(QMainWindow):
             # rather than the slower roster cadence.
             if self._selected_station is not None:
                 self._refresh_station_panel()
+            if self._selected_run is not None:
+                self._refresh_train_panel()
 
         if self._frame_counter % self.SLOW_REFRESH_FRAMES == 0:
             self._refresh_slow()
@@ -423,6 +438,28 @@ class MainWindow(QMainWindow):
         board = self.simulation.board_for(station)
         self.station_panel.update_board(board, self.simulation.clock.seconds)
 
+    def _refresh_train_panel(self) -> None:
+        """Re-find the selected run and update its readout.
+
+        The run is looked up by identifier every refresh rather than holding a
+        reference, because train states are rebuilt from scratch each frame and
+        the selected run eventually leaves the network entirely.
+        """
+        run_id = self._selected_run
+        if run_id is None:
+            self.train_panel.show_placeholder()
+            return
+        for line_id, trains in self.simulation.frame.trains.items():
+            for train in trains:
+                if train.run_id == run_id:
+                    self.train_panel.update_train(
+                        train,
+                        self.simulation.network.line(line_id),
+                        self.simulation.clock.seconds,
+                    )
+                    return
+        self.train_panel.show_finished()
+
     def _on_train_selected(self, train: TrainState | None) -> None:
         """Highlight a train and centre whichever tab can show it."""
         if train is None:
@@ -442,7 +479,8 @@ class MainWindow(QMainWindow):
         x = line_item.x_for_index(train.position)
         y = line_item.y_for_direction(train.direction)
         panel.view.focus_on(line_item.mapToScene(x, y))
-        self.statusBar_message(f"{train.run_id} - {train.service_label}")
+        self._refresh_train_panel()
+        self.statusBar_message(f"{train.run_label} - {train.service_label}")
 
     def statusBar_message(self, text: str) -> None:
         self.setWindowTitle(f"{config.APP_NAME}  v{config.APP_VERSION}   -   {text}")

@@ -144,7 +144,7 @@ so a Windows build must be produced on Windows.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest        # 170 tests, about 15 s
+python -m pytest        # 186 tests, about 25 s
 python selftest.py      # end-to-end integration pass
 ```
 
@@ -164,8 +164,8 @@ python selftest.py      # end-to-end integration pass
 | Zoom | Mouse wheel, `+` and `−`, or the header buttons |
 | Pan | Drag anywhere, or `Shift` plus wheel for horizontal |
 | Fit whole network | `0`, or **FIT** |
-| Inspect a station | Click a circle. Full detail opens on the right. |
-| Inspect a train | Hover a train, or click a row in the roster |
+| Inspect a station | Click a circle. Detail opens on the right. |
+| Inspect a train | Click a train, or a row in the roster. Detail opens on the right. |
 
 ---
 
@@ -183,6 +183,9 @@ python selftest.py      # end-to-end integration pass
 │ live/up  │  Yellow ●─●─●──●─●                │ arrival       │
 │ dn/dwell │                                   │ departure     │
 │ / short  │  (up track above, down below)     │ loop          │
+│          │                                   ├───────────────┤
+│          │                                   │ TRAIN         │
+│          │                                   │ DETAIL        │
 ├──────────┴───────────────────────────────────┴───────────────┤
 │ LIVE TRAIN ROSTER   run │ line │ dep │ next │ eta │ dest      │
 ├──────────────────────────────────────────────────────────────┤
@@ -230,6 +233,41 @@ different run. That distinction is the reason the loop tile exists separately.
 
 Countdowns update at 10 Hz, and the selected station is marked with a white
 ring on the diagram in every tab that shows it.
+
+### Train detail
+
+Clicking a train opens its own panel directly beneath the station one, so the
+right-hand column always answers whatever was last clicked.
+
+```
+Purple-WFD-FULL  No. 22
+Purple Line  |  Full route
+─────────────────────────────────────
+NEXT STOP             STATUS
+2m 00s                In motion
+Kundalahalli (09:14)  stop 9 of 37
+
+JOURNEY PROGRESS
+████████░░░░░░░░░░░░░░░░░░░░░░░
+24% complete  |  28 stops remaining
+
+Service    Whitefield to Challaghatta
+From       Whitefield (Kadugodi)
+Towards    Challaghatta
+Departed   08:41  (19 min ago)
+Arrives    10:04
+Direction  Up  (towards Challaghatta)
+Pattern    Full route
+```
+
+The panel follows the run rather than freezing at the moment it was clicked.
+It re-finds the train by its identifier on every refresh, so the countdown,
+progress bar and next stop stay live as it moves. When the run finishes, the
+panel says so instead of showing stale figures.
+
+Up and Down are the conventional railway terms for the two directions, but
+they mean nothing on their own, so the panel also names the end of the line
+each direction heads towards.
 
 ### Tabs
 
@@ -293,12 +331,12 @@ bmrcl-train-tracker/
 │   │   ├── main_window.py    composition, render loop, tabs
 │   │   ├── items/            StationItem, TrainItem, LineItem
 │   │   └── widgets/          HeaderBar, StatusBar, LinePanel,
-│   │                         StationPanel, TrainTable
+│   │                         StationPanel, TrainPanel, TrainTable
 │   └── data/
 │       ├── timetable.json    all four day types, all frequency windows
 │       └── lines/            purple.json, green.json, yellow.json
 │
-├── tests/                    170 pytest tests
+├── tests/                    186 pytest tests
 ├── docs/
 │   ├── ARCHITECTURE.md       layering, data flow, performance
 │   └── DATA_FORMAT.md        JSON schema reference
@@ -512,7 +550,7 @@ attaches them to a GitHub release.
 ## Testing
 
 ```bash
-python -m pytest              # 170 tests
+python -m pytest              # 186 tests
 python -m pytest -v           # verbose
 python -m pytest tests/test_trains.py
 python selftest.py            # integration pass
@@ -528,6 +566,7 @@ python selftest.py            # integration pass
 | `test_theme.py` | AMOLED palette, clock digit stability |
 | `test_metrics.py` | Text-aware sizing |
 | `test_ui.py` | Header layout at 5 widths, tabs, docks, controls |
+| `test_train_panel.py` | Train detail panel and live tracking |
 | `test_performance.py` | 60 FPS frame budget |
 
 ## Licence

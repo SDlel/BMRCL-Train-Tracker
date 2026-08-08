@@ -13,7 +13,6 @@ which is how a real arrivals board reads.
 from __future__ import annotations
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
@@ -27,55 +26,7 @@ from PySide6.QtWidgets import (
 from ...core.arrivals import BoardEntry, StationBoard
 from ...core.timetable import format_hhmm
 from .. import theme
-
-
-def countdown(seconds: float | None) -> str:
-    """Render a countdown the way a platform indicator would."""
-    if seconds is None:
-        return "--"
-    seconds = max(0.0, seconds)
-    if seconds < 30:
-        return "due"
-    if seconds < 3600:
-        return f"{int(seconds // 60)}m {int(seconds % 60):02d}s"
-    return f"{int(seconds // 3600)}h {int((seconds % 3600) // 60):02d}m"
-
-
-class EventTile(QWidget):
-    """A single headline figure: caption, big countdown, clock time."""
-
-    def __init__(self, caption: str, accent: QColor, parent: QWidget | None = None) -> None:
-        super().__init__(parent)
-        self._accent = QColor(accent)
-        root = QVBoxLayout(self)
-        root.setContentsMargins(0, 0, 0, 0)
-        root.setSpacing(1)
-
-        self.caption = QLabel(caption)
-        self.caption.setFont(theme.ui_font(7, bold=True))
-        self.caption.setStyleSheet(f"color: {theme.HEX['text_dim']}; letter-spacing: 1px;")
-
-        self.value = QLabel("--")
-        self.value.setFont(theme.mono_font(19, bold=True))
-        self.value.setStyleSheet(f"color: {self._accent.name()};")
-
-        self.detail = QLabel("")
-        self.detail.setFont(theme.mono_font(8))
-        self.detail.setStyleSheet(f"color: {theme.HEX['text_dim']};")
-
-        root.addWidget(self.caption)
-        root.addWidget(self.value)
-        root.addWidget(self.detail)
-
-    def set_value(self, text: str, detail: str = "", colour: str | None = None) -> None:
-        self.value.setText(text)
-        self.detail.setText(detail)
-        self.value.setStyleSheet(f"color: {colour or self._accent.name()};")
-
-    def set_muted(self, text: str = "--", detail: str = "") -> None:
-        self.value.setText(text)
-        self.detail.setText(detail)
-        self.value.setStyleSheet(f"color: {theme.HEX['text_faint']};")
+from .detail_common import EventTile, caption_label, countdown, rule
 
 
 class FollowingRow(QFrame):
@@ -147,10 +98,7 @@ class StationPanel(QWidget):
         self.subtitle.setWordWrap(True)
         root.addWidget(self.subtitle)
 
-        self.rule = QFrame()
-        self.rule.setFrameShape(QFrame.HLine)
-        self.rule.setStyleSheet(f"color: {theme.HEX['border']};")
-        root.addWidget(self.rule)
+        root.addWidget(rule())
 
         grid = QGridLayout()
         grid.setContentsMargins(0, 0, 0, 0)
@@ -170,11 +118,7 @@ class StationPanel(QWidget):
         self.loop_note.setStyleSheet(f"color: {theme.HEX['text_faint']};")
         root.addWidget(self.loop_note)
 
-        self.following_caption = QLabel("FOLLOWING")
-        self.following_caption.setFont(theme.ui_font(7, bold=True))
-        self.following_caption.setStyleSheet(
-            f"color: {theme.HEX['text_dim']}; letter-spacing: 1px;"
-        )
+        self.following_caption = caption_label("FOLLOWING")
         root.addWidget(self.following_caption)
 
         self.rows: list[FollowingRow] = []

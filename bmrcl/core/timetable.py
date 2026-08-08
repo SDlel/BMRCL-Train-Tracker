@@ -103,6 +103,18 @@ class Service:
     def is_short_turn(self) -> bool:
         return self.kind == "short"
 
+    @property
+    def display_id(self) -> str:
+        """Service code with the line spelled out.
+
+        The stored ids are terse three-letter codes such as ``GRN-SLK-FULL``.
+        ``GRN`` is not obvious to a reader, so the leading segment is replaced
+        with the line name for anything shown in the interface.
+        """
+        _, _, remainder = self.id.partition("-")
+        line_name = self.line_id.capitalize()
+        return f"{line_name}-{remainder}" if remainder else line_name
+
     def departure_times(self) -> list[int]:
         """Every departure of this service, sorted and de-duplicated."""
         times: list[int] = list(self.explicit)
@@ -126,7 +138,17 @@ class Departure:
 
     @property
     def run_id(self) -> str:
+        """Stable internal identifier, used to match a run between frames."""
         return f"{self.service.id}#{self.trip_index:03d}"
+
+    @property
+    def run_label(self) -> str:
+        """Human-readable name shown in the interface.
+
+        Trips are numbered from one rather than zero, because this is read by
+        people rather than indexed by code.
+        """
+        return f"{self.service.display_id}  No. {self.trip_index + 1}"
 
 
 class DayPlan:
