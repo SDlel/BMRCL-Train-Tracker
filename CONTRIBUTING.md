@@ -3,8 +3,8 @@
 ## Setup
 
 ```bash
-git clone https://github.com/SDlel/bmrcl-train-tracker
-cd bmrcl-train-tracker
+git clone https://github.com/SDlel/BMRCL-Train-Tracker
+cd BMRCL-Train-Tracker
 python -m venv .venv
 .venv\Scripts\activate        # Windows
 source .venv/bin/activate     # macOS / Linux

@@ -35,8 +35,8 @@ package = ["pyinstaller>=6.0"]
 bmrcl-train-tracker = "bmrcl.app:main"
 
 [project.urls]
-Homepage = "https://github.com/SDlel/bmrcl-train-tracker"
-Issues = "https://github.com/SDlel/bmrcl-train-tracker/issues"
+Homepage = "https://github.com/SDlel/BMRCL-Train-Tracker"
+Issues = "https://github.com/SDlel/BMRCL-Train-Tracker/issues"
 
 [tool.setuptools.packages.find]
 include = ["bmrcl*"]

@@ -1,6 +1,6 @@
 # BMRCL Train Tracker
 
-[![CI](https://github.com/SDlel/bmrcl-train-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/SDlel/bmrcl-train-tracker/actions/workflows/ci.yml)
+[![CI](https://github.com/SDlel/BMRCL-Train-Tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/SDlel/BMRCL-Train-Tracker/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue)
 ![PySide6](https://img.shields.io/badge/PySide6-6.6%2B-41cd52)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -83,13 +83,40 @@ Terms used throughout the interface and the documentation.
 
 ## Download and run
 
-### Option 1: run from source
+### Option 1: download a ready-made build
+
+No Python needed. This is the easiest route.
+
+1. Go to the [latest release](https://github.com/SDlel/BMRCL-Train-Tracker/releases/latest).
+2. Under **Assets**, download the archive for your system:
+
+   | System | File | Size |
+   | --- | --- | --- |
+   | Windows | `BMRCL-Train-Tracker-Windows.zip` | 48 MB |
+   | macOS | `BMRCL-Train-Tracker-macOS.zip` | 93 MB |
+   | Linux | `BMRCL-Train-Tracker-Linux.zip` | 114 MB |
+
+3. Unzip it anywhere.
+4. Run the `BMRCL-Train-Tracker` executable inside the folder.
+
+Ignore the two "Source code" archives on that page. GitHub adds those to every
+release automatically, and they contain the code rather than a runnable app.
+
+The archives are large because they bundle the Python runtime and the Qt
+libraries, so nothing else has to be installed.
+
+Two notes on first launch. On Windows, SmartScreen may warn that the publisher
+is unknown, since the build is not code-signed; choose **More info** then **Run
+anyway**. On macOS, right-click the app and choose **Open** rather than
+double-clicking, for the same reason.
+
+### Option 2: run from source
 
 Requires Python 3.12 or newer.
 
 ```bash
-git clone https://github.com/SDlel/bmrcl-train-tracker
-cd bmrcl-train-tracker
+git clone https://github.com/SDlel/BMRCL-Train-Tracker
+cd BMRCL-Train-Tracker
 python -m pip install -r requirements.txt
 python run.py
 ```
@@ -103,7 +130,7 @@ bmrcl-train-tracker
 
 `python -m bmrcl` also works.
 
-### Option 2: build your own executable
+### Option 3: build your own executable
 
 ```bash
 pip install -e ".[package]"
