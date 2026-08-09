@@ -10,7 +10,7 @@ from pathlib import Path
 
 APP_NAME = "BMRCL Train Tracker"
 APP_ORG = "BMRCL"
-APP_VERSION = "1.1"
+APP_VERSION = "1.3"
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 DATA_DIR = PACKAGE_DIR / "data"
