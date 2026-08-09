@@ -31,6 +31,50 @@ class LineStats:
 
 
 @dataclass(slots=True)
+class RefreshResult:
+    """Outcome of a timetable refresh, used to report back to the operator."""
+
+    corrected_seconds: float | None
+    day_type: str
+    day_type_changed: bool
+    active_trains: int
+    at: float
+
+    @property
+    def corrected(self) -> bool:
+        """True if the clock was actually moved by a perceptible amount."""
+        return self.corrected_seconds is not None and abs(self.corrected_seconds) >= 0.05
+
+    @property
+    def offset_text(self) -> str:
+        """Signed correction with a unit that suits its size.
+
+        Sub-second corrections are the common case once the clock has settled,
+        and reading them as ``0.1s`` loses the detail, so milliseconds are used
+        below one second and minutes above ninety.
+        """
+        if self.corrected_seconds is None:
+            return "n/a"
+        value = self.corrected_seconds
+        sign = "+" if value >= 0 else "-"
+        magnitude = abs(value)
+        if magnitude < 1.0:
+            return f"{sign}{magnitude * 1000:.0f}ms"
+        if magnitude < 90.0:
+            return f"{sign}{magnitude:.1f}s"
+        return f"{sign}{magnitude / 60:.1f}min"
+
+    @property
+    def summary(self) -> str:
+        """One-line description suitable for a status readout."""
+        if self.corrected_seconds is None:
+            return f"Verified against timetable, {self.active_trains} trains"
+        if not self.corrected:
+            return f"Already accurate, {self.active_trains} trains"
+        return f"Refreshed ({self.offset_text}), {self.active_trains} trains"
+
+
+@dataclass(slots=True)
 class Frame:
     """Everything the renderer needs for one frame."""
 
@@ -109,6 +153,25 @@ class Simulation:
     def arrivals_for(self, line_id: str, station_index: int, limit: int = config.TOOLTIP_ARRIVALS):
         return self.trains.line_manager(line_id).next_arrivals(
             station_index, self.clock.seconds, self.day_type, limit
+        )
+
+    def refresh(self) -> RefreshResult:
+        """Re-check the clock against the system time and rebuild the picture.
+
+        Train positions are derived from the clock rather than accumulated, so
+        nothing can drift out of step with the timetable on its own. What does
+        drift is the clock itself, and correcting it brings every train back
+        into line as a consequence.
+        """
+        correction = self.clock.correct_drift()
+        day_type_before = self.day_type
+        frame = self.rebuild()
+        return RefreshResult(
+            corrected_seconds=correction,
+            day_type=frame.day_type,
+            day_type_changed=day_type_before != frame.day_type,
+            active_trains=frame.total_active,
+            at=self.clock.seconds,
         )
 
     def board_for(self, station: Station, limit: int = 6) -> StationBoard:

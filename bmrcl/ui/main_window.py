@@ -22,7 +22,15 @@ from . import theme
 from .network_panel import NetworkPanel
 from .scene import NetworkScene
 from .view import NetworkView
-from .widgets import HeaderBar, LinePanel, StationPanel, StatusBar, TrainPanel, TrainTable
+from .widgets import (
+    HeaderBar,
+    LinePanel,
+    StationPanel,
+    StatusBar,
+    Toast,
+    TrainPanel,
+    TrainTable,
+)
 
 
 class MainWindow(QMainWindow):
@@ -64,6 +72,7 @@ class MainWindow(QMainWindow):
             panel.apply_frame(self.simulation.frame)
         self._update_roster_title()
         self._refresh_slow()
+        self.status.flash_sync("Loaded from timetable")
         # Fitting needs a realised widget size, so defer to the event loop.
         QTimer.singleShot(0, self._fit_active)
 
@@ -96,6 +105,8 @@ class MainWindow(QMainWindow):
 
         self.status = StatusBar(self.simulation.network)
         self._install_bar(self.status, Qt.BottomToolBarArea)
+
+        self.toast = Toast(self)
 
     def _install_bar(self, widget: QWidget, area) -> None:
         """Mount a fixed strip across the full width of the window."""
@@ -237,6 +248,11 @@ class MainWindow(QMainWindow):
             sim_menu.addAction(action)
 
         sim_menu.addSeparator()
+        refresh = QAction("&Sync with timetable", self)
+        refresh.setShortcut(QKeySequence.Refresh)
+        refresh.triggered.connect(self._manual_refresh)
+        sim_menu.addAction(refresh)
+
         live = QAction("Resync to &Live", self)
         live.setShortcut("Ctrl+L")
         live.triggered.connect(self._resync)
@@ -247,6 +263,7 @@ class MainWindow(QMainWindow):
         self.header.speed_changed.connect(self._set_speed)
         self.header.seek_requested.connect(self._seek)
         self.header.resync_requested.connect(self._resync)
+        self.header.refresh_requested.connect(self._manual_refresh)
         self.header.day_type_changed.connect(self._set_day_type)
         self.header.zoom_in_requested.connect(self._zoom_in)
         self.header.zoom_out_requested.connect(self._zoom_out)
@@ -284,6 +301,14 @@ class MainWindow(QMainWindow):
         self._timer.setInterval(config.FRAME_INTERVAL_MS)
         self._timer.timeout.connect(self._on_frame)
         self._timer.start()
+
+        # Each frame advances the clock by a measured interval, and those
+        # measurements are rounded and clamped, so time slips by a few seconds
+        # an hour. This pulls it back without disturbing the operator.
+        self._refresh_timer = QTimer(self)
+        self._refresh_timer.setInterval(config.AUTO_REFRESH_MINUTES * 60_000)
+        self._refresh_timer.timeout.connect(self._auto_refresh)
+        self._refresh_timer.start()
 
     def _on_frame(self) -> None:
         self._frame_counter += 1
@@ -395,6 +420,44 @@ class MainWindow(QMainWindow):
         self.simulation.clock.nudge(delta)
         self.simulation.rebuild()
         self._refresh_slow()
+
+    def _manual_refresh(self) -> None:
+        """Operator pressed SYNC."""
+        self._refresh(announce=True)
+
+    def _auto_refresh(self) -> None:
+        """Scheduled check, reported only when it actually changed something."""
+        result = self._refresh(announce=False)
+        if result.corrected or result.day_type_changed:
+            self.toast.show_message(f"Auto refresh ({result.offset_text})")
+            self.statusBar_message(f"Auto sync: {result.summary}")
+
+    def _refresh(self, *, announce: bool):
+        """Re-verify the clock against system time and rebuild every panel."""
+        result = self.simulation.refresh()
+        for panel in self.panels:
+            panel.mark_dirty()
+        self.panel.apply_frame(self.simulation.frame, update_headers=True)
+        self._refresh_slow()
+        if self._selected_station is not None:
+            self._refresh_station_panel()
+        if self._selected_run is not None:
+            self._refresh_train_panel()
+        self.status.flash_sync(result.summary)
+        if announce:
+            self._show_refresh_toast(result)
+        return result
+
+    def _show_refresh_toast(self, result) -> None:
+        """Confirm a manual sync on screen, including when nothing changed.
+
+        Silence after pressing a button reads as a broken button, so the
+        no-op case is reported too.
+        """
+        if result.corrected:
+            self.toast.show_message(f"Refreshed ({result.offset_text})")
+        else:
+            self.toast.show_message("Already in sync", icon="\u2713", colour=theme.HEX["ok"])
 
     def _resync(self) -> None:
         self.simulation.clock.resync()

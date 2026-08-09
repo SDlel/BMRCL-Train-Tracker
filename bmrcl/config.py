@@ -10,7 +10,7 @@ from pathlib import Path
 
 APP_NAME = "BMRCL Train Tracker"
 APP_ORG = "BMRCL"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.1"
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 DATA_DIR = PACKAGE_DIR / "data"
@@ -61,6 +61,14 @@ TRAIN_HEIGHT = 15.0
 
 TARGET_FPS = 60
 FRAME_INTERVAL_MS = 1000 // TARGET_FPS
+
+#: How often the clock is automatically re-checked against system time.
+#: Each frame advances time by a measured interval, and those measurements are
+#: rounded and clamped, so a few seconds an hour accumulate without this.
+AUTO_REFRESH_MINUTES = 10
+
+#: Corrections smaller than this are not worth reporting to the operator.
+REFRESH_REPORT_THRESHOLD_SECONDS = 0.5
 
 ZOOM_MIN = 0.18
 ZOOM_MAX = 4.0

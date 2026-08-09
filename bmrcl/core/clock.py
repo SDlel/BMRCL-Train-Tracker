@@ -78,6 +78,47 @@ class SimulationClock:
             self._day += timedelta(days=1)
         return delta
 
+    # -- drift correction ---------------------------------------------------
+
+    def drift(self) -> float | None:
+        """Seconds the simulated clock is behind or ahead of the system clock.
+
+        Only meaningful while running live at 1x. Returns ``None`` otherwise,
+        because a paused or fast-forwarded clock is *supposed* to differ.
+
+        Drift accumulates because each frame advances time by the measured
+        interval since the previous frame, and those measurements are rounded,
+        clamped when a frame stalls, and dropped entirely while the window is
+        not being painted. In practice this loses a few seconds an hour.
+        """
+        if not self._live or not self._running:
+            return None
+        if abs(self._speed - 1.0) > 1e-9:
+            return None
+        now = datetime.now()
+        if now.date() != self._day:
+            return None
+        wall = now.hour * 3600 + now.minute * 60 + now.second + now.microsecond / 1e6
+        return self._seconds - wall
+
+    def correct_drift(self) -> float | None:
+        """Snap the simulated time back onto the system clock.
+
+        Unlike :meth:`resync` this preserves the running state, the speed and
+        the selected day, so it can run unattended without disturbing whatever
+        the operator is doing.
+
+        Returns:
+            The correction applied in seconds, or ``None`` if the clock is not
+            in a state where correction makes sense.
+        """
+        offset = self.drift()
+        if offset is None:
+            return None
+        self._seconds -= offset
+        self._last_monotonic = time.monotonic()
+        return -offset
+
     def state(self) -> ClockState:
         return ClockState(
             seconds=self._seconds,

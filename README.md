@@ -87,28 +87,35 @@ Terms used throughout the interface and the documentation.
 
 No Python needed. This is the easiest route.
 
-1. Go to the [latest release](https://github.com/SDlel/BMRCL-Train-Tracker/releases/latest).
-2. Under **Assets**, download the archive for your system:
+No Python needed. This is the easiest route.
 
-   | System | File | Size |
-   | --- | --- | --- |
-   | Windows | `BMRCL-Train-Tracker-Windows.zip` | 48 MB |
-   | macOS | `BMRCL-Train-Tracker-macOS.zip` | 93 MB |
-   | Linux | `BMRCL-Train-Tracker-Linux.zip` | 114 MB |
+Go to the [latest release](https://github.com/SDlel/BMRCL-Train-Tracker/releases/latest)
+and download the file for your system from under **Assets**.
 
-3. Unzip it anywhere.
-4. Run the `BMRCL-Train-Tracker` executable inside the folder.
+| System | File | Size |
+| --- | --- | --- |
+| Windows | `BMRCL-Train-Tracker-Windows.zip` | 48 MB |
+| macOS | `BMRCL-Train-Tracker-macOS.zip` | 93 MB |
+| Linux | `BMRCL-Train-Tracker-Linux.zip` | 114 MB |
+| Android | `BMRCL-Train-Tracker-Android.apk` | 133 MB |
+
+**Desktop.** Unzip the archive anywhere, then run the `BMRCL-Train-Tracker`
+executable inside the folder.
+
+**Android.** Open the `.apk` on the phone and allow installation from unknown
+sources when prompted. The mobile build lays the lines out vertically and uses
+bottom sheets in place of the desktop side panels.
 
 Ignore the two "Source code" archives on that page. GitHub adds those to every
 release automatically, and they contain the code rather than a runnable app.
 
-The archives are large because they bundle the Python runtime and the Qt
-libraries, so nothing else has to be installed.
+The downloads are large because they bundle the Python runtime and the UI
+toolkit, so nothing else has to be installed.
 
-Two notes on first launch. On Windows, SmartScreen may warn that the publisher
-is unknown, since the build is not code-signed; choose **More info** then **Run
-anyway**. On macOS, right-click the app and choose **Open** rather than
-double-clicking, for the same reason.
+None of the builds are code-signed, so expect a warning on first launch. On
+Windows, SmartScreen may say the publisher is unknown; choose **More info**
+then **Run anyway**. On macOS, right-click the app and choose **Open** rather
+than double-clicking. On Android, allow the install when the system asks.
 
 ### Option 2: run from source
 
@@ -144,7 +151,7 @@ so a Windows build must be produced on Windows.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest        # 186 tests, about 25 s
+python -m pytest        # 219 tests, about 70 s
 python selftest.py      # end-to-end integration pass
 ```
 
@@ -159,6 +166,7 @@ python selftest.py      # end-to-end integration pass
 | Simulation speed | `0.5x` `1x` `2x` `5x` `20x` buttons |
 | Jump to a time | Time field plus **JUMP** |
 | Return to real time | **LIVE**, or `Ctrl+L` |
+| Refresh the clock | the refresh icon, or `F5` |
 | Step 5 min or 1 hr | `←` `→` and `Ctrl+←` `Ctrl+→` |
 | Day type | **DAY** dropdown (Auto, Monday, Tue-Fri, Saturday, Sunday) |
 | Zoom | Mouse wheel, `+` and `−`, or the header buttons |
@@ -269,6 +277,34 @@ Up and Down are the conventional railway terms for the two directions, but
 they mean nothing on their own, so the panel also names the end of the line
 each direction heads towards.
 
+### Keeping time accurate
+
+Train positions are calculated from the clock rather than nudged forward each
+frame, so a train can never drift out of step with its own timetable. The
+clock itself is a different matter.
+
+Every frame advances time by the interval measured since the previous frame.
+Those measurements are rounded, and they are clamped when a frame stalls or
+the window stops being painted, so the simulated clock slowly falls behind the
+system clock. Measured at roughly 13 seconds per hour, with larger losses if
+the machine is busy.
+
+Two things correct it:
+
+- **Automatic**, every 10 minutes. The clock is compared against system time
+  and snapped back. Running state, speed and the selected day are preserved,
+  so it never interrupts anything.
+- **Manual**, via the refresh icon in the header or `F5`, which does the same
+  immediately and shows the result on screen.
+
+A brief confirmation appears over the diagram either way, reading `Refreshed
+(+236ms)` or `Already in sync`, with the unit scaled to the size of the
+correction. The status bar also shows how long ago the last sync ran.
+
+Correction is deliberately skipped when it would be wrong: while paused, at
+any speed other than 1x, and after jumping to a chosen time. In those cases
+the difference from real time is intentional rather than drift.
+
 ### Tabs
 
 **Network** shows all three lines stacked, as an overview.
@@ -336,7 +372,7 @@ bmrcl-train-tracker/
 │       ├── timetable.json    all four day types, all frequency windows
 │       └── lines/            purple.json, green.json, yellow.json
 │
-├── tests/                    186 pytest tests
+├── tests/                    219 pytest tests
 ├── docs/
 │   ├── ARCHITECTURE.md       layering, data flow, performance
 │   └── DATA_FORMAT.md        JSON schema reference
@@ -550,7 +586,7 @@ attaches them to a GitHub release.
 ## Testing
 
 ```bash
-python -m pytest              # 186 tests
+python -m pytest              # 219 tests
 python -m pytest -v           # verbose
 python -m pytest tests/test_trains.py
 python selftest.py            # integration pass
@@ -566,6 +602,7 @@ python selftest.py            # integration pass
 | `test_theme.py` | AMOLED palette, clock digit stability |
 | `test_metrics.py` | Text-aware sizing |
 | `test_ui.py` | Header layout at 5 widths, tabs, docks, controls |
+| `test_refresh.py` | Clock drift detection and timetable sync |
 | `test_train_panel.py` | Train detail panel and live tracking |
 | `test_performance.py` | 60 FPS frame budget |
 

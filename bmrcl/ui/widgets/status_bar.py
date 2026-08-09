@@ -111,6 +111,7 @@ class StatusBar(QFrame):
         self.network = network
         self.fps = FpsCounter()
         self._cache: dict[str, str] = {}
+        self._last_sync: float | None = None
         self._build()
 
     def _build(self) -> None:
@@ -131,6 +132,7 @@ class StatusBar(QFrame):
             ("dwell", "DWELL"),
             ("short", "SHORT"),
             ("day", "PLAN"),
+            ("sync", "SYNC"),
             ("speed", "SPEED"),
             ("zoom", "ZOOM"),
             ("fps", "FPS"),
@@ -163,6 +165,7 @@ class StatusBar(QFrame):
         self._set("dwell", f"DWELL {dwell:>3}")
         self._set("short", f"SHORT {short:>3}")
         self._set("day", f"PLAN {day_label}")
+        self._set("sync", f"SYNC {self._sync_age()}")
         self._set("speed", f"SPEED {frame.clock.speed:g}x")
         self._set("zoom", f"ZOOM {zoom * 100:.0f}%")
         self._set("fps", f"FPS {fps:5.1f}")
@@ -174,6 +177,20 @@ class StatusBar(QFrame):
         )
         self._set_colour("fps", colour)
         self._set_colour("speed", theme.HEX["ok"] if frame.clock.running else theme.HEX["warn"])
+
+    def flash_sync(self, summary: str) -> None:
+        """Record that a sync just happened, and show it in the tooltip."""
+        self._last_sync = time.perf_counter()
+        self.metrics["sync"].setToolTip(summary)
+
+    def _sync_age(self) -> str:
+        """How long ago the last sync ran, as a compact readout."""
+        if self._last_sync is None:
+            return "--"
+        seconds = int(time.perf_counter() - self._last_sync)
+        if seconds < 60:
+            return f"{seconds:>2}s"
+        return f"{seconds // 60:>2}m"
 
     def _set(self, key: str, text: str) -> None:
         """Assign label text only when it actually changed."""

@@ -5,6 +5,7 @@ from .header_bar import HeaderBar
 from .line_panel import LineCard, LinePanel
 from .station_panel import StationPanel
 from .status_bar import FpsCounter, LegendSwatch, StatusBar
+from .toast import Toast
 from .train_panel import TrainPanel
 from .train_table import TrainTable, TrainTableModel
 
@@ -18,6 +19,7 @@ __all__ = [
     "ProgressBar",
     "StationPanel",
     "StatusBar",
+    "Toast",
     "TrainPanel",
     "TrainTable",
     "TrainTableModel",

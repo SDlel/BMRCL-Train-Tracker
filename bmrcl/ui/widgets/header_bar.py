@@ -43,16 +43,17 @@ class HeaderBar(QFrame):
     speed_changed = Signal(float)
     seek_requested = Signal(int)
     resync_requested = Signal()
+    refresh_requested = Signal()
     day_type_changed = Signal(object)
     zoom_in_requested = Signal()
     zoom_out_requested = Signal()
     fit_requested = Signal()
 
-    BRAND_MIN_WIDTH = 1340
+    BRAND_MIN_WIDTH = 1400
 
-    BRAND_SUB_MIN_WIDTH = 1420
+    BRAND_SUB_MIN_WIDTH = 1480
 
-    CONTROLS_MIN_WIDTH = 1060
+    CONTROLS_MIN_WIDTH = 1120
 
     def __init__(self, day_types: list[tuple[str, str]], parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -160,6 +161,17 @@ class HeaderBar(QFrame):
         self.live_button.clicked.connect(self.resync_requested.emit)
         fit_width(self.live_button, "LIVE", padding=BUTTON_PADDING)
         box.addWidget(self.live_button)
+
+        # A refresh glyph rather than a word, so the control reads instantly
+        # and stays narrow in an already crowded bar.
+        self.refresh_button = QPushButton("\u21bb")
+        self.refresh_button.setFont(theme.ui_font(13, bold=True))
+        self.refresh_button.setToolTip(
+            "Refresh (F5): re-check the clock against system time and reload the timetable picture"
+        )
+        self.refresh_button.clicked.connect(self.refresh_requested.emit)
+        fit_width(self.refresh_button, "\u21bb", padding=BUTTON_PADDING, minimum=38)
+        box.addWidget(self.refresh_button)
         return box
 
     def _day_block(self, day_types: list[tuple[str, str]]) -> QHBoxLayout:
