@@ -25,6 +25,7 @@ class LineStats:
     active: int = 0
     running: int = 0
     dwelling: int = 0
+    turning: int = 0
     short_turns: int = 0
     up: int = 0
     down: int = 0
@@ -136,6 +137,8 @@ class Simulation:
                     stat.running += 1
                 elif train.phase is Phase.DWELL:
                     stat.dwelling += 1
+                elif train.at_terminal:
+                    stat.turning += 1
                 if train.short_turn:
                     stat.short_turns += 1
                 if train.direction > 0:

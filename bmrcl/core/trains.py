@@ -18,16 +18,53 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from .. import config
+from .linkage import PhysicalLinkage
 from .network import Line, Network
 from .timetable import Departure, Service, Timetable
 
 
 class Phase(StrEnum):
-    """What a train is doing right now."""
+    """What a train is doing right now.
+
+    Intermediate stations use the two-state cycle that has always applied::
+
+        RUNNING -> DWELL -> RUNNING
+
+    Terminals are modelled explicitly, because a physical train does not vanish
+    the moment its scheduled run ends::
+
+        RUNNING -> ARRIVED_TERMINAL -> TURNING -> TERMINATED
+
+    ``ARRIVED_TERMINAL`` and ``TURNING`` together occupy exactly
+    ``TURNAROUND_SECONDS``; the arrival period is carved out of the turnaround
+    rather than added to it. ``DEPARTING`` is reserved for the optional
+    physical-return linkage and is never reached by timetable-only running.
+
+    ``TERMINATED`` predates the other terminal states and is retained as the
+    "run finished, nothing onward assigned" state.
+    """
 
     RUNNING = "running"
     DWELL = "dwell"
+    ARRIVED_TERMINAL = "arrived"
+    TURNING = "turning"
+    DEPARTING = "departing"
     TERMINATED = "terminated"
+
+    @property
+    def at_terminal(self) -> bool:
+        """True for any state where the train is standing at its terminal."""
+        return self in _TERMINAL_PHASES
+
+    @property
+    def is_stationary(self) -> bool:
+        """True whenever the train is not moving between stations."""
+        return self is not Phase.RUNNING
+
+
+_TERMINAL_PHASES = frozenset(
+    {Phase.ARRIVED_TERMINAL, Phase.TURNING, Phase.DEPARTING, Phase.TERMINATED}
+)
 
 
 @dataclass(slots=True)
@@ -52,10 +89,33 @@ class TrainState:
     dwell_remaining: float
     progress: float  # 0..1 of the whole run
     delay: float = 0.0  # reserved for future perturbation modelling
+    #: Seconds left of the whole terminal occupancy, zero away from a terminal.
+    turnaround_remaining: float = 0.0
+    #: Identifier of the physical vehicle. One vehicle may work several runs in
+    #: sequence, so this is stable across a terminal turnaround.
+    physical_train_id: str = ""
+    #: Description of the working this vehicle continues into, if assigned.
+    next_working: str = ""
+    #: Clock time of that onward departure, in seconds after midnight.
+    next_working_time: float | None = None
+    #: Seconds until the onward working departs, while standing at a terminal.
+    next_working_in: float | None = None
 
     @property
     def is_moving(self) -> bool:
         return self.phase is Phase.RUNNING
+
+    @property
+    def at_terminal(self) -> bool:
+        """True while standing at the terminating station of the run."""
+        return self.phase.at_terminal
+
+    @property
+    def turnaround_elapsed(self) -> float:
+        """Seconds since arriving at the terminal, zero elsewhere."""
+        if not self.at_terminal:
+            return 0.0
+        return max(0.0, config.TURNAROUND_SECONDS - self.turnaround_remaining)
 
     @property
     def hops_total(self) -> int:
@@ -106,8 +166,12 @@ class RunResolver:
 
     CYCLE = config.INTER_STATION_SECONDS + config.DWELL_SECONDS
 
-    def __init__(self, line: Line) -> None:
+    def __init__(self, line: Line, linker=None) -> None:
         self.line = line
+        #: Optional :class:`~bmrcl.core.linkage.PhysicalLinker`. When present a
+        #: run knows which working its vehicle continues into, which is what
+        #: lets a train hold the platform until it departs again.
+        self.linker = linker
 
     def resolve(self, departure: Departure, now: float) -> TrainState | None:
         """Return the train state at ``now`` or ``None`` if it is not running."""
@@ -123,10 +187,36 @@ class RunResolver:
         total = run_duration(hops)
         if elapsed < 0.0:
             return None
-        if elapsed > total + config.TURNAROUND_SECONDS:
+
+        link = self.linker.working_after(departure.run_id) if self.linker else None
+        # A linked vehicle holds the platform right up to its onward departure,
+        # at which point the outbound run takes over and this one is done.
+        #
+        # The handover is exclusive: at the exact second the onward working
+        # departs, that run resolves and this one must not, or the same
+        # physical vehicle would be drawn twice in the same frame.
+        if link is not None:
+            if elapsed >= link.departure_time - departure.time:
+                return None
+        elif elapsed > total + config.TURNAROUND_SECONDS + config.TERMINAL_CLEAR_SECONDS:
             return None
 
         if elapsed >= total:
+            terminal_elapsed = elapsed - total
+            turnaround_remaining = max(0.0, config.TURNAROUND_SECONDS - terminal_elapsed)
+            if terminal_elapsed < config.TERMINAL_ARRIVAL_SECONDS:
+                phase = Phase.ARRIVED_TERMINAL
+            elif terminal_elapsed < config.TURNAROUND_SECONDS:
+                phase = Phase.TURNING
+            elif link is not None:
+                # Turnaround complete and an onward working is assigned, so the
+                # vehicle is waiting to form it rather than finishing.
+                phase = Phase.DEPARTING
+            else:
+                # Nothing onward: the run ends here. No return service is
+                # invented, because the timetable already schedules departures
+                # from this terminal independently.
+                phase = Phase.TERMINATED
             return TrainState(
                 run_id=departure.run_id,
                 run_label=departure.run_label,
@@ -139,11 +229,16 @@ class RunResolver:
                 departure_time=departure.time,
                 position=float(destination),
                 direction=direction,
-                phase=Phase.TERMINATED,
+                phase=phase,
                 from_index=destination,
                 to_index=destination,
                 seconds_to_next=0.0,
-                dwell_remaining=max(0.0, total + config.TURNAROUND_SECONDS - elapsed),
+                dwell_remaining=turnaround_remaining,
+                turnaround_remaining=turnaround_remaining,
+                physical_train_id=self._physical_id(departure),
+                next_working=self._working_label(link),
+                next_working_time=link.departure_time if link else None,
+                next_working_in=(link.departure_time - now) if link else None,
                 progress=1.0,
             )
 
@@ -183,8 +278,20 @@ class RunResolver:
             to_index=to_index,
             seconds_to_next=seconds_to_next,
             dwell_remaining=dwell_remaining,
+            physical_train_id=self._physical_id(departure),
+            next_working=self._working_label(link),
+            next_working_time=link.departure_time if link else None,
             progress=min(1.0, elapsed / total) if total else 1.0,
         )
+
+    def _physical_id(self, departure: Departure) -> str:
+        if self.linker is None:
+            return departure.run_id
+        return self.linker.physical_id_for(departure.run_id)
+
+    @staticmethod
+    def _working_label(link) -> str:
+        return link.destination_name if link else ""
 
 
 class LineTrainManager:
@@ -194,10 +301,41 @@ class LineTrainManager:
         self.line = line
         self.timetable = timetable
         self._resolver = RunResolver(line)
-        self._max_span = run_duration(len(line) - 1) + config.TURNAROUND_SECONDS + 60.0
+        self._linkers: dict[str, PhysicalLinkage] = {}
+        self._base_span = (
+            run_duration(len(line) - 1)
+            + config.TURNAROUND_SECONDS
+            + config.TERMINAL_CLEAR_SECONDS
+            + 60.0
+        )
+        self._max_span = self._base_span
+
+    def linker(self, day_type: str) -> PhysicalLinkage | None:
+        """Physical vehicle assignment for ``day_type``, built once and cached."""
+        if not config.PHYSICAL_RETURN_LINKAGE:
+            return None
+        linker = self._linkers.get(day_type)
+        if linker is None:
+            linker = PhysicalLinkage(self.line, self.timetable, day_type)
+            self._linkers[day_type] = linker
+        return linker
+
+    def _prepare(self, day_type: str) -> None:
+        """Point the resolver at the right day and widen the lookback.
+
+        A linked vehicle stays on screen until its onward departure, so the
+        candidate window has to reach back far enough to still find it.
+        """
+        linker = self.linker(day_type)
+        self._resolver.linker = linker
+        # A linked vehicle stays on screen until its onward departure, so the
+        # candidate window must reach back by the longest permitted layover.
+        extra = config.MAX_LAYOVER_SECONDS if linker else 0.0
+        self._max_span = self._base_span + extra
 
     def trains_at(self, now: float, day_type: str) -> list[TrainState]:
         """All trains physically present on the line at ``now``."""
+        self._prepare(day_type)
         plan = self.timetable.plan(self.line.id, day_type)
         window_start = now - self._max_span
         candidates: list[Departure] = plan.slice(int(window_start), int(now) + 1)

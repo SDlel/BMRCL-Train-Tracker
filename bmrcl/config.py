@@ -22,15 +22,38 @@ INTER_STATION_SECONDS = 120.0
 
 DWELL_SECONDS = 20.0
 
-#: Time a train occupies a terminal platform after arrival before it is
-#: released from the simulation (or reversed, when reversal is enabled).
-TURNAROUND_SECONDS = 180.0
+#: Total time a physical train occupies a terminal platform after arriving:
+#: the initial arrival period plus the operational turnaround that follows.
+#:
+#: This is a SIMULATION ASSUMPTION, not published BMRCL data. The official
+#: timetable states frequencies and notes that timings may change; it does not
+#: establish a universal turnaround rule. Five minutes is a plausible default
+#: and is meant to be adjusted (180, 240, 300 and so on) rather than trusted.
+TURNAROUND_SECONDS = 300.0
 
-#: Full-line services are scheduled independently from *both* terminals in the
-#: published timetable, therefore automatically reversing an arriving train
-#: would double the modelled service.  The reversal machinery is implemented
-#: and can be switched on for scenarios driven by a single-ended timetable.
-REVERSE_AT_TERMINAL = False
+#: Opening portion of the turnaround, representing the train sitting at the
+#: terminal immediately after arrival while passengers alight. Counted inside
+#: TURNAROUND_SECONDS, never added on top of it.
+TERMINAL_ARRIVAL_SECONDS = 30.0
+
+#: How long a run that has finished its turnaround with no onward working
+#: remains visible at the terminal before leaving the simulation. Without this
+#: the terminated state would be instantaneous and could never be inspected.
+TERMINAL_CLEAR_SECONDS = 60.0
+
+#: Whether an arriving train may continue into a later opposite-direction
+#: working as the same physical vehicle.
+#:
+#: This never creates a service. Every working a train is linked to already
+#: exists in the timetable; linkage only decides which physical vehicle is
+#: assumed to work it. Public timetable data does not state rolling-stock
+#: assignments, so the pairing is an inference, not a fact.
+PHYSICAL_RETURN_LINKAGE = True
+
+#: Longest gap between arriving and departing again that still counts as a
+#: through working. Beyond this the vehicle is assumed to be stabled or sent to
+#: depot, and the arriving run simply terminates.
+MAX_LAYOVER_SECONDS = 1800.0
 
 SECONDS_PER_DAY = 86400
 

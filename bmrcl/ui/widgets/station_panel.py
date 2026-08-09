@@ -112,6 +112,20 @@ class StationPanel(QWidget):
         grid.addWidget(self.tile_loop, 1, 0, 1, 2)
         root.addLayout(grid)
 
+        self.terminal_row = QHBoxLayout()
+        self.terminal_row.setContentsMargins(0, 0, 0, 0)
+        self.terminal_row.setSpacing(8)
+        self.terminal_caption = caption_label("TERMINAL")
+        self.terminal_value = QLabel("")
+        self.terminal_value.setFont(theme.mono_font(9, bold=True))
+        self.terminal_detail = QLabel("")
+        self.terminal_detail.setFont(theme.mono_font(8))
+        self.terminal_detail.setStyleSheet(f"color: {theme.HEX['text_dim']};")
+        self.terminal_row.addWidget(self.terminal_caption)
+        self.terminal_row.addWidget(self.terminal_value)
+        self.terminal_row.addWidget(self.terminal_detail, 1)
+        root.addLayout(self.terminal_row)
+
         self.loop_note = QLabel("")
         self.loop_note.setFont(theme.ui_font(7))
         self.loop_note.setWordWrap(True)
@@ -137,6 +151,8 @@ class StationPanel(QWidget):
         for tile in (self.tile_arrival, self.tile_departure, self.tile_loop):
             tile.set_muted()
         self.tile_loop.setVisible(False)
+        for widget in (self.terminal_caption, self.terminal_value, self.terminal_detail):
+            widget.setVisible(False)
         self.loop_note.setVisible(False)
         self.following_caption.setVisible(False)
         for row in self.rows:
@@ -171,8 +187,36 @@ class StationPanel(QWidget):
             else:
                 self.tile_departure.set_muted()
 
+        self._update_terminal(board)
         self._update_loop(board, now)
         self._update_following(board, now)
+
+    def _update_terminal(self, board: StationBoard) -> None:
+        """Platform occupancy, shown only where runs actually terminate."""
+        status = board.terminal
+        visible = status is not None
+        self.terminal_caption.setVisible(visible)
+        self.terminal_value.setVisible(visible)
+        self.terminal_detail.setVisible(visible)
+        if status is None:
+            return
+
+        colours = {
+            "TURNING": theme.HEX["warn"],
+            "OCCUPIED": theme.HEX["text"],
+            "CLEAR": theme.HEX["ok"],
+        }
+        self.terminal_value.setText(status.label)
+        self.terminal_value.setStyleSheet(f"color: {colours[status.label]};")
+
+        if status.train is None:
+            self.terminal_detail.setText("no train at the platform")
+        elif status.turning:
+            self.terminal_detail.setText(
+                f"{status.train.run_label}  |  {countdown(status.turnaround_remaining)} remaining"
+            )
+        else:
+            self.terminal_detail.setText(f"{status.train.run_label}  |  turnaround complete")
 
     def _update_loop(self, board: StationBoard, now: float) -> None:
         """Third tile, shown only at short-turn stations."""

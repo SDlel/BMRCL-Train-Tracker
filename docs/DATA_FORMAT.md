@@ -167,13 +167,21 @@ Not stored per service. These are global constants in `bmrcl/config.py`.
 | --- | --- | --- |
 | `INTER_STATION_SECONDS` | 120 | Run time between adjacent stations |
 | `DWELL_SECONDS` | 20 | Stop at an intermediate station |
-| `TURNAROUND_SECONDS` | 180 | Terminal occupancy after arrival |
-| `REVERSE_AT_TERMINAL` | `False` | See below |
+| `TERMINAL_ARRIVAL_SECONDS` | 30 | Opening portion of the turnaround |
+| `TURNAROUND_SECONDS` | 300 | Total terminal occupancy after arrival |
+| `TERMINAL_CLEAR_SECONDS` | 60 | Visibility after the turnaround completes |
+| `PHYSICAL_RETURN_LINKAGE` | `True` | See below |
+| `MAX_LAYOVER_SECONDS` | 1800 | Longest gap still counted as a through working |
 
-Terminal reversal is implemented but disabled. The published timetable
-schedules both terminals independently, so automatically reversing an arriving
-train would double the modelled service. Enable it only for a single-ended
-timetable.
+Terminal turnaround is modelled explicitly: an arriving train holds the
+platform for `TURNAROUND_SECONDS`, split into an arrival period and a turning
+period. The 300 second default is a simulation assumption rather than published
+BMRCL data.
+
+Physical return linkage pairs an arriving train with a later departure that
+already exists in the timetable, so a vehicle can be followed through a
+turnaround. It never creates a departure. Rolling-stock assignments are not
+published, so the pairing is an inference and can be switched off.
 
 ## Adding a line: checklist
 

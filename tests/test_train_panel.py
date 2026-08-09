@@ -104,9 +104,25 @@ def test_dwelling_train_shows_platform_status(qapp, window) -> None:
 
 
 def test_terminated_train_reports_arrival_in_the_past(qapp, window) -> None:
-    train = pick(window, Phase.TERMINATED)
-    if train is None:
-        pytest.skip("no terminated train at this instant")
+    """A train standing at its terminal reports when it got there.
+
+    Scans forward rather than relying on the opening frame, because with
+    physical linkage enabled most arrivals continue into another working and
+    comparatively few runs reach TERMINATED.
+    """
+    sim = window.simulation
+    train = None
+    for offset in range(0, 3600, 30):
+        sim.clock.seek(parse_hhmm("09:00") + offset)
+        sim.rebuild()
+        train = next(
+            (t for ts in sim.frame.trains.values() for t in ts if t.phase is Phase.TERMINATED),
+            None,
+        )
+        if train is not None:
+            break
+    assert train is not None, "no terminated train found in an hour of running"
+
     window._on_train_selected(train)
     pump(qapp)
     assert "arrived" in window.train_panel.facts["arrives"].value.text()

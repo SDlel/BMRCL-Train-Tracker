@@ -74,7 +74,7 @@ Terms used throughout the interface and the documentation.
 | **Terminating** | A train whose run finishes at the station in question. It does not depart again in service; it turns back as a different run with a different identifier. |
 | **Interchange** | A station served by more than one line, where passengers can change between them. Drawn as a large double ring. |
 | **Up and down** | Conventional railway terms for the two directions of travel. Here, up runs towards higher station indices and is drawn above the line axis; down runs the opposite way, below the axis. |
-| **Turnaround** | The time a train occupies a terminal platform after arriving, before the platform is released. Modelled here as 180 seconds. |
+| **Turnaround** | The time a train occupies a terminal platform after arriving, before the platform is released. A simulation assumption, not published BMRCL data; 300 seconds by default, split into a 30 second arrival period and 270 seconds of turning. |
 | **Depot** | A facility where trains are stabled and maintained. Stations with depot access are marked with a small square. |
 | **Day type** | A grouping of days that share a timetable. This network uses four: Monday, Tuesday to Friday, Saturday and Sunday. |
 | **Frequency window** | A period during which a given headway applies, for example 10 minute headways between 05:20 and 10:57. |
@@ -87,8 +87,6 @@ Terms used throughout the interface and the documentation.
 
 No Python needed. This is the easiest route.
 
-No Python needed. This is the easiest route.
-
 Go to the [latest release](https://github.com/SDlel/BMRCL-Train-Tracker/releases/latest)
 and download the file for your system from under **Assets**.
 
@@ -97,14 +95,9 @@ and download the file for your system from under **Assets**.
 | Windows | `BMRCL-Train-Tracker-Windows.zip` | 48 MB |
 | macOS | `BMRCL-Train-Tracker-macOS.zip` | 93 MB |
 | Linux | `BMRCL-Train-Tracker-Linux.zip` | 114 MB |
-| Android | `BMRCL-Train-Tracker-Android.apk` | 133 MB |
 
-**Desktop.** Unzip the archive anywhere, then run the `BMRCL-Train-Tracker`
-executable inside the folder.
-
-**Android.** Open the `.apk` on the phone and allow installation from unknown
-sources when prompted. The mobile build lays the lines out vertically and uses
-bottom sheets in place of the desktop side panels.
+Unzip the archive anywhere, then run the `BMRCL-Train-Tracker` executable
+inside the folder.
 
 Ignore the two "Source code" archives on that page. GitHub adds those to every
 release automatically, and they contain the code rather than a runnable app.
@@ -112,10 +105,10 @@ release automatically, and they contain the code rather than a runnable app.
 The downloads are large because they bundle the Python runtime and the UI
 toolkit, so nothing else has to be installed.
 
-None of the builds are code-signed, so expect a warning on first launch. On
-Windows, SmartScreen may say the publisher is unknown; choose **More info**
-then **Run anyway**. On macOS, right-click the app and choose **Open** rather
-than double-clicking. On Android, allow the install when the system asks.
+None of the builds are code-signed, so expect a warning on first launch. On Windows,
+SmartScreen may say the publisher is unknown; choose **More info** then **Run
+anyway**. On macOS, right-click the app and choose **Open** rather than
+double-clicking.
 
 ### Option 2: run from source
 
@@ -151,7 +144,7 @@ so a Windows build must be produced on Windows.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest        # 219 tests, about 70 s
+python -m pytest        # 292 tests, about 50 s
 python selftest.py      # end-to-end integration pass
 ```
 
@@ -372,7 +365,7 @@ bmrcl-train-tracker/
 │       ├── timetable.json    all four day types, all frequency windows
 │       └── lines/            purple.json, green.json, yellow.json
 │
-├── tests/                    219 pytest tests
+├── tests/                    292 pytest tests
 ├── docs/
 │   ├── ARCHITECTURE.md       layering, data flow, performance
 │   └── DATA_FORMAT.md        JSON schema reference
@@ -467,13 +460,75 @@ sufficient.
 | --- | --- | --- |
 | Run time between adjacent stations | 120 s | `config.INTER_STATION_SECONDS` |
 | Dwell at an intermediate station | 20 s | `config.DWELL_SECONDS` |
-| Terminal occupancy after arrival | 180 s | `config.TURNAROUND_SECONDS` |
-| Reverse at terminal | off | `config.REVERSE_AT_TERMINAL` |
+| Terminal arrival period | 30 s | `config.TERMINAL_ARRIVAL_SECONDS` |
+| Total terminal turnaround | 300 s | `config.TURNAROUND_SECONDS` |
+| Terminal clearing period | 60 s | `config.TERMINAL_CLEAR_SECONDS` |
 
-Terminal reversal is implemented but disabled by default. The published
-timetable schedules both terminals independently, so automatically reversing an
-arriving train would double the modelled service. It can be enabled for
-scenarios driven by a single-ended timetable.
+### Terminal turnaround
+
+A train that reaches the end of its run does not vanish. It occupies the
+platform through an explicit sequence:
+
+```
+RUNNING  ->  ARRIVED_TERMINAL  ->  TURNING  ->  TERMINATED
+              first 30 s          next 270 s
+```
+
+The arrival period and the turning period together occupy exactly
+`TURNAROUND_SECONDS`; the arrival window is carved out of the turnaround
+rather than added on top of it. Intermediate stations are unaffected and still
+use the plain `RUNNING -> DWELL -> RUNNING` cycle with a 20 second dwell.
+
+On the diagram a turning train keeps the amber dwell dot and gains a reversal
+arc, so a terminal turnaround is distinguishable from an ordinary station stop.
+The train panel shows the countdown, and terminal stations gain a
+`TERMINAL: CLEAR / OCCUPIED / TURNING` readout.
+
+> **The 300 second turnaround is a simulation assumption, not published BMRCL
+> data.** The official timetable states service frequencies and notes that
+> timings may change according to planned activities. It does not establish a
+> universal terminal turnaround rule. The value is centralised in `config.py`
+> and is meant to be adjusted rather than trusted.
+
+### Physical train continuity
+
+A vehicle reaching a terminal does not disappear. Where the timetable already
+contains a suitable return departure, the same physical train is shown forming
+it: it holds the platform, reverses, and heads back up the line as one
+continuous rectangle on the diagram.
+
+```
+RUNNING -> ARRIVED_TERMINAL -> TURNING -> DEPARTING -> RUNNING
+                                          forms the next working
+```
+
+**No service is invented.** Every working a train continues into already exists
+in the timetable; linkage only decides which vehicle is assumed to operate it.
+Departure counts are identical with linkage on or off, and there are tests
+asserting exactly that.
+
+The pairing rules are deliberately strict. A vehicle may only take a departure
+that leaves from the station it arrived at, heads in the opposite direction,
+departs no earlier than the full turnaround, and departs within
+`MAX_LAYOVER_SECONDS`. Each departure can be claimed once, and arrivals are
+processed in time order, so the train that arrived first goes back out first.
+
+Not every arrival gets a working, and that is correct rather than a gap:
+
+| Line | Runs that continue |
+| --- | --- |
+| Yellow | 93% |
+| Green | 54% |
+| Purple | 49% |
+
+Purple Line services terminating at Challaghatta outnumber departures from it
+almost two to one, because short workings end at terminals they never start
+from. Those vehicles stable or go to depot, and the panel says `Not assigned`
+rather than guessing.
+
+> Rolling-stock assignments are **not** published. The pairing is an inference
+> from the timetable, not a statement of fact about which train works which
+> service. It can be switched off with `PHYSICAL_RETURN_LINKAGE = False`.
 
 ---
 
@@ -586,7 +641,7 @@ attaches them to a GitHub release.
 ## Testing
 
 ```bash
-python -m pytest              # 219 tests
+python -m pytest              # 292 tests
 python -m pytest -v           # verbose
 python -m pytest tests/test_trains.py
 python selftest.py            # integration pass
@@ -603,6 +658,8 @@ python selftest.py            # integration pass
 | `test_metrics.py` | Text-aware sizing |
 | `test_ui.py` | Header layout at 5 widths, tabs, docks, controls |
 | `test_refresh.py` | Clock drift detection and timetable sync |
+| `test_terminal.py` | Terminal turnaround state machine |
+| `test_linkage.py` | Physical train continuity across turnarounds |
 | `test_train_panel.py` | Train detail panel and live tracking |
 | `test_performance.py` | 60 FPS frame budget |
 

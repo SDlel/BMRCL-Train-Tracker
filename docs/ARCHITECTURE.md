@@ -154,6 +154,48 @@ pan.
 The active tab also scopes the roster, the line-status cards, the status-bar
 counters and the legend, via `MainWindow.active_line_ids`.
 
+## Terminal turnaround
+
+A run does not end the instant it reaches its destination. The resolver keeps
+producing states for a further `TURNAROUND_SECONDS`, split into an arrival
+period and a turning period:
+
+```python
+terminal_elapsed = elapsed - total
+if terminal_elapsed < TERMINAL_ARRIVAL_SECONDS:
+    phase = Phase.ARRIVED_TERMINAL
+elif terminal_elapsed < TURNAROUND_SECONDS:
+    phase = Phase.TURNING
+else:
+    phase = Phase.TERMINATED
+```
+
+The two terminal periods sum to `TURNAROUND_SECONDS` exactly. Changing that
+constant rescales the turning period and leaves the arrival period alone.
+
+Because state is still derived purely from elapsed time, seeking into or past a
+turnaround is exact, and pausing freezes the countdown without special cases.
+
+## Physical train linkage
+
+`core/linkage.py` pairs each arrival with a later departure from the same
+station, so one vehicle can work several runs in sequence. The table is built
+once per line and day type, cached in a `LinkageRegistry`, and consulted by
+`RunResolver` through a dictionary lookup, so the per-frame cost is negligible.
+
+A linked run stays resolvable until its onward departure rather than expiring
+after the turnaround, which is what keeps the train on the platform. The
+candidate lookback widens by `MAX_LAYOVER_SECONDS` to compensate.
+
+`physical_train_id` is shared along a chain. The renderer keys its item pool by
+that id rather than by list position, so the same `QGraphicsItem` represents
+the vehicle before and after it reverses. Without this the train would blink
+out and a different rectangle would appear heading the other way.
+
+The matching is greedy over time-ordered arrivals, which makes it deterministic
+and therefore reproducible from a timestamp, the same property the rest of the
+simulation depends on.
+
 ## Extending the network
 
 Adding Blue, Orange or the Airport line is a data-only change:

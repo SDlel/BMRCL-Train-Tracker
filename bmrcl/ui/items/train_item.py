@@ -47,6 +47,8 @@ class TrainItem(QGraphicsItem):
             fill = fill.darker(150)
         elif self._phase is Phase.TERMINATED:
             fill = QColor(theme.TEXT_FAINT)
+        elif self._phase.at_terminal:
+            fill = fill.darker(170)
 
         edge = QColor(theme.SHORT_TURN) if self._short else fill.lighter(150)
         if self._selected:
@@ -76,6 +78,15 @@ class TrainItem(QGraphicsItem):
         if self._phase is Phase.DWELL:
             painter.setBrush(QBrush(theme.WARN))
             painter.drawEllipse(QPointF(-w / 2 + 3.0, -h / 2 + 3.0), 1.8, 1.8)
+        elif self._phase in (Phase.ARRIVED_TERMINAL, Phase.TURNING, Phase.DEPARTING):
+            # Amber dot as for a dwell, plus a reversal arc, so a terminal
+            # turnaround is distinguishable from an ordinary station stop.
+            painter.setBrush(QBrush(theme.WARN))
+            painter.drawEllipse(QPointF(-w / 2 + 3.0, -h / 2 + 3.0), 1.8, 1.8)
+            painter.setBrush(Qt.NoBrush)
+            painter.setPen(QPen(theme.WARN, 1.4))
+            arc = QRectF(-5.0, -4.5, 10.0, 9.0)
+            painter.drawArc(arc, 40 * 16, 280 * 16)
 
     def apply(self, state: TrainState, x: float, y: float, min_step: float = 0.0) -> None:
         """Reposition and restyle this item for ``state``.

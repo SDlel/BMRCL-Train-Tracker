@@ -30,12 +30,18 @@ from .detail_common import EventTile, ProgressBar, caption_label, countdown, ela
 PHASE_TEXT = {
     Phase.RUNNING: "In motion",
     Phase.DWELL: "At platform",
+    Phase.ARRIVED_TERMINAL: "Arrived",
+    Phase.TURNING: "Turning around",
+    Phase.DEPARTING: "Departing",
     Phase.TERMINATED: "Terminated",
 }
 
 PHASE_COLOUR = {
     Phase.RUNNING: theme.HEX["text"],
     Phase.DWELL: theme.HEX["warn"],
+    Phase.ARRIVED_TERMINAL: theme.HEX["warn"],
+    Phase.TURNING: theme.HEX["warn"],
+    Phase.DEPARTING: theme.HEX["ok"],
     Phase.TERMINATED: theme.HEX["text_faint"],
 }
 
@@ -123,6 +129,9 @@ class TrainPanel(QWidget):
             ("to", "Towards"),
             ("departed", "Departed"),
             ("arrives", "Arrives"),
+            ("turnaround", "Turnaround"),
+            ("next_working", "Next working"),
+            ("vehicle", "Vehicle"),
             ("direction", "Direction"),
             ("type", "Pattern"),
         ):
@@ -142,8 +151,10 @@ class TrainPanel(QWidget):
             tile.set_muted()
         self.progress.set_progress(0.0, theme.HEX["text_faint"])
         self.progress_text.setText("")
-        for row in self.facts.values():
+        for key, row in self.facts.items():
             row.set_value("--", theme.HEX["text_faint"])
+            if key in ("turnaround", "next_working"):
+                row.setVisible(False)
 
     def show_finished(self) -> None:
         """The selected run has left the network."""
@@ -169,6 +180,14 @@ class TrainPanel(QWidget):
 
         if train.phase is Phase.TERMINATED:
             self.tile_next.set_muted("arrived", destination)
+        elif train.at_terminal:
+            # Standing at the terminal: the useful figure is how much of the
+            # turnaround is left, not a next stop it will never reach.
+            self.tile_next.set_value(
+                countdown(train.turnaround_remaining),
+                f"turnaround at {destination}",
+                theme.HEX["warn"],
+            )
         elif train.phase is Phase.DWELL:
             self.tile_next.set_value(
                 countdown(train.dwell_remaining),
@@ -181,9 +200,15 @@ class TrainPanel(QWidget):
                 f"{next_stop}  ({format_hhmm(now + train.seconds_to_next)})",
             )
 
+        if train.at_terminal:
+            status_detail = f"at {destination}"
+        else:
+            status_detail = (
+                f"stop {abs(train.from_index - train.origin_index)} of {train.hops_total}"
+            )
         self.tile_status.set_value(
             PHASE_TEXT.get(train.phase, "Unknown"),
-            f"stop {abs(train.from_index - train.origin_index)} of {train.hops_total}",
+            status_detail,
             PHASE_COLOUR.get(train.phase, theme.HEX["text"]),
         )
         self.tile_status.value.setFont(theme.ui_font(13, bold=True))
@@ -202,7 +227,7 @@ class TrainPanel(QWidget):
             f"{format_hhmm(train.departure_time)}  ({elapsed_text(now - train.departure_time)} ago)"
         )
 
-        if train.phase is Phase.TERMINATED:
+        if train.at_terminal:
             arrived_at = train.departure_time + run_duration(train.hops_total)
             self.facts["arrives"].set_value(
                 f"arrived {format_hhmm(arrived_at)}", theme.HEX["text_dim"]
@@ -210,6 +235,8 @@ class TrainPanel(QWidget):
         else:
             eta = train.eta_to(train.destination_index)
             self.facts["arrives"].set_value(format_hhmm(now + eta) if eta is not None else "--")
+
+        self._set_turnaround_facts(train, destination, now)
 
         # "Up" and "Down" are railway convention but mean nothing on their own,
         # so name the end of the line each direction heads towards.
@@ -220,3 +247,42 @@ class TrainPanel(QWidget):
         self.facts["type"].set_value(
             badge, theme.HEX["warn"] if train.short_turn else theme.HEX["text"]
         )
+
+    def _set_turnaround_facts(self, train: TrainState, destination: str, now: float) -> None:
+        """Fill the turnaround rows, hiding them away from a terminal.
+
+        No onward working is invented here. The timetable already schedules
+        departures from both terminals, so claiming a return service would
+        double-count it. Until physical linkage is modelled the honest answer
+        is that nothing is assigned.
+        """
+        at_terminal = train.at_terminal
+        self.facts["turnaround"].setVisible(at_terminal)
+        self.facts["next_working"].setVisible(at_terminal)
+        self.facts["vehicle"].set_value(train.physical_train_id)
+        if not at_terminal:
+            return
+
+        if train.phase is Phase.TERMINATED:
+            self.facts["turnaround"].set_value("complete", theme.HEX["text_dim"])
+        elif train.phase is Phase.DEPARTING:
+            self.facts["turnaround"].set_value("complete, forming next working", theme.HEX["ok"])
+        else:
+            self.facts["turnaround"].set_value(
+                f"{countdown(train.turnaround_remaining)} remaining", theme.HEX["warn"]
+            )
+
+        if train.next_working:
+            when = (
+                format_hhmm(train.next_working_time)
+                if train.next_working_time is not None
+                else "--"
+            )
+            self.facts["next_working"].set_value(
+                f"{destination} to {train.next_working}  {when}", theme.HEX["text"]
+            )
+        else:
+            # Some arrivals genuinely have no onward service: short workings
+            # terminate at stations they never start from, and those vehicles
+            # stable rather than turning straight back.
+            self.facts["next_working"].set_value("Not assigned", theme.HEX["text_dim"])

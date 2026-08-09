@@ -37,6 +37,9 @@ class NetworkScene(QGraphicsScene):
         self.setItemIndexMethod(QGraphicsScene.NoIndex)
         self.line_items: dict[str, LineItem] = {}
         self._pools: dict[str, list[TrainItem]] = {}
+        #: Graphics item currently representing each physical vehicle, so a
+        #: train keeps its rectangle across a terminal turnaround.
+        self._assigned: dict[str, dict[str, TrainItem]] = {}
         self._time_caption: QGraphicsSimpleTextItem | None = None
         self._selected_run: str | None = None
         self._labels_visible = True
@@ -53,6 +56,7 @@ class NetworkScene(QGraphicsScene):
             self.addItem(item)
             self.line_items[line.id] = item
             self._pools[line.id] = []
+            self._assigned[line.id] = {}
 
         widest = max(((len(line) - 1) * config.STATION_SPACING) for line in self.network)
         rows = len(self.network)
@@ -115,18 +119,33 @@ class NetworkScene(QGraphicsScene):
                     )
 
     def _sync_pool(self, line_id: str, line_item: LineItem, trains) -> None:
+        """Position one graphics item per live train.
+
+        Items are held by physical vehicle rather than by list position, so a
+        train that turns at a terminal and forms the next working keeps the
+        same rectangle instead of one disappearing and another appearing.
+        """
         pool = self._pools[line_id]
+        assigned = self._assigned[line_id]
         colour = QColor(line_item.line.colour)
         selected = self._selected_run
+        min_step = self._min_step
 
         while len(pool) < len(trains):
             item = TrainItem(colour, line_item)
             item.tooltip_provider = lambda state, li=line_item: self.train_tooltip(state, li)
             pool.append(item)
 
-        min_step = self._min_step
-        for i, state in enumerate(trains):
-            item = pool[i]
+        free = [item for item in pool if item not in assigned.values()]
+        current: dict[str, TrainItem] = {}
+
+        for state in trains:
+            key = state.physical_train_id or state.run_id
+            item = assigned.get(key)
+            if item is None or item in current.values():
+                item = free.pop() if free else pool[len(current)]
+            current[key] = item
+
             x = line_item.x_for_index(state.position)
             y = line_item.y_for_direction(state.direction)
             item.apply(state, x, y, min_step)
@@ -135,8 +154,12 @@ class NetworkScene(QGraphicsScene):
             if not item.isVisible():
                 item.setVisible(True)
 
-        for item in pool[len(trains) :]:
-            if item.isVisible():
+        assigned.clear()
+        assigned.update(current)
+
+        live = set(current.values())
+        for item in pool:
+            if item not in live and item.isVisible():
                 item.setVisible(False)
 
     def train_tooltip(self, state: TrainState, line_item: LineItem) -> str:
@@ -147,12 +170,23 @@ class NetworkScene(QGraphicsScene):
         phase = state.phase.value.upper()
         badge = "SHORT TURN" if state.short_turn else "FULL ROUTE"
         eta = f"{int(state.seconds_to_next // 60):d}m {int(state.seconds_to_next % 60):02d}s"
+        if state.at_terminal:
+            if state.next_working and state.next_working_time is not None:
+                onward = (
+                    f"Forms <b>{state.next_working}</b> at {format_hhmm(state.next_working_time)}"
+                )
+            else:
+                onward = (
+                    f"<span style='color:{theme.HEX['text_dim']}'>No onward working assigned</span>"
+                )
+            location = f"At <b>{dest}</b><br>{onward}"
+        else:
+            location = f"Towards <b>{dest}</b><br>Next stop <b>{nxt}</b> in {eta}"
         return (
             f"<b>{state.run_label}</b> <span style='color:{theme.HEX['warn']}'>{badge}</span><br>"
             f"<span style='color:{theme.HEX['text_dim']}'>{state.service_label}</span><br>"
-            f"Departed {format_hhmm(state.departure_time)} &middot; {phase}<br>"
-            f"Towards <b>{dest}</b><br>"
-            f"Next stop <b>{nxt}</b> in {eta}<br>"
+            f"Vehicle {state.physical_train_id} &middot; {phase}<br>"
+            f"{location}<br>"
             f"Progress {state.progress * 100:.0f}%"
         )
 

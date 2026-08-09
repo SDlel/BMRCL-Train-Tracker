@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from .. import config
 from .network import Line, Station
 from .timetable import DayPlan, Departure, Timetable
-from .trains import RunResolver, TrainState
+from .trains import Phase, RunResolver, TrainState
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,6 +57,22 @@ class LoopEvent:
 
 
 @dataclass(frozen=True, slots=True)
+class TerminalStatus:
+    """Occupancy of a terminating platform, for stations where runs end."""
+
+    occupied: bool
+    turning: bool
+    train: TrainState | None
+    turnaround_remaining: float
+
+    @property
+    def label(self) -> str:
+        if not self.occupied:
+            return "CLEAR"
+        return "TURNING" if self.turning else "OCCUPIED"
+
+
+@dataclass(frozen=True, slots=True)
 class StationBoard:
     """Everything the detail panel needs for one station."""
 
@@ -64,6 +80,7 @@ class StationBoard:
     line: Line
     entries: tuple[BoardEntry, ...]
     loop: LoopEvent | None
+    terminal: TerminalStatus | None = None
 
     @property
     def is_short_turn(self) -> bool:
@@ -117,7 +134,26 @@ class ArrivalBoard:
             line=self.line,
             entries=tuple(entries),
             loop=loop,
+            terminal=self._terminal_status(station, trains),
         )
+
+    def _terminal_status(self, station: Station, trains: list[TrainState]) -> TerminalStatus | None:
+        """Report whether a train is standing at this terminating platform.
+
+        Only meaningful where runs actually end, so it is reported for line
+        terminals and for short-turn points where services terminate.
+        """
+        if not (station.terminus or station.short_turn):
+            return None
+        for train in trains:
+            if train.at_terminal and train.destination_index == station.index:
+                return TerminalStatus(
+                    occupied=True,
+                    turning=train.phase is not Phase.TERMINATED,
+                    train=train,
+                    turnaround_remaining=train.turnaround_remaining,
+                )
+        return TerminalStatus(occupied=False, turning=False, train=None, turnaround_remaining=0.0)
 
     def _loop_event(
         self,

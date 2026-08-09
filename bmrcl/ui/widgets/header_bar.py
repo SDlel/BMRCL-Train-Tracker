@@ -165,12 +165,16 @@ class HeaderBar(QFrame):
         # A refresh glyph rather than a word, so the control reads instantly
         # and stays narrow in an already crowded bar.
         self.refresh_button = QPushButton("\u21bb")
-        self.refresh_button.setFont(theme.ui_font(13, bold=True))
+        self.refresh_button.setFont(theme.ui_font(10, bold=True))
         self.refresh_button.setToolTip(
             "Refresh (F5): re-check the clock against system time and reload the timetable picture"
         )
         self.refresh_button.clicked.connect(self.refresh_requested.emit)
         fit_width(self.refresh_button, "\u21bb", padding=BUTTON_PADDING, minimum=38)
+        # Match the plain text buttons exactly. A glyph reports a taller
+        # height hint than a capital letter of the same point size, which
+        # would otherwise leave this control standing proud of the row.
+        self.refresh_button.setFixedHeight(self.live_button.sizeHint().height())
         box.addWidget(self.refresh_button)
         return box
 
