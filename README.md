@@ -10,7 +10,7 @@ PySide6 and `QGraphicsScene`/`QGraphicsView`.
 
 ![Network overview](docs/images/01-network-overview.png)
 
-<sub>All three lines at the Tuesday to Friday morning peak. 98 trains in service.</sub>
+<sub>All three lines at the Tuesday to Friday morning peak. 98 trains in service</sub>
 
 <table>
 <tr>
